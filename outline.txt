@@ -1,0 +1,91 @@
+Neural Network Planning
+=======================
+
+Files outline:
+
+
+General purpose
+---------------
+
+base64.cpp
+base64.h
+    Base64 encoding/decoding
+
+svg_writer.cpp
+svg_writer.h
+    Definitions: SVGWriter
+    General purpose SVG file writer
+
+pid_controller.cpp
+pid_controller.h
+    Definitions: PIDController
+    Generic PID controller
+
+
+Project specific (from less specific to most specific)
+------------------------------------------------------
+
+geometry.h
+    Definitions: Point2D, Point3D, WaypointPath2D
+
+robot_task.h
+    Definitions: RobotTask
+    A RobotTask is the virtual base class for a specific task that a robot performs
+
+robot_task_driver.h
+    Definition: RobotTaskDriver
+    A RobotTaskDriver takes a RobotTask and runs it into the VRep environment. It runs the
+    simulation loop and react to sigint signals for premature termination.
+
+height_map.cpp
+height_map.h
+    Definitions: HeightMap
+    Holds a bitmap representation of an height map. Depends on Point2D
+
+path_follower.cpp
+path_follower.h
+    Definitions: PIDPathFollower
+    Drives a robot along a path defined by waypoints using a PID controller. Depends on PIDController
+
+path_planner.cpp
+path_planner.h
+    Definitions: RRTNode, RRTPlan, RRTPlanner
+    Finds paths through a map using an RRT. Depends on Point2D, WaypointPath2D, HeightMap
+
+vrep_client.cpp
+vrep_client.h
+    Definitions: VRepClient
+    General purpose interface to the VRep server. Depends on Point3D
+
+manta_controller.cpp
+manta_controller.h
+    Definitions: MantaController
+    Interface specific for the manta vehicle. Depends on VRepClient
+
+svg_utils.cpp
+svg_utils.h
+    Definitions: initialize_svg_writer(), write_height_map(), write_rrt_plan(), write_path()
+    SVG functions to write project specific objects. Depends on SVGWriter
+
+path_following_task.cpp
+path_following_task.h
+    Definitions: PathFollowingTask
+    Moves the manta vehicle through a waypoint.
+    Implements RobotTask, depends on MantaController, WaypointPath2D, PIDPathFollower
+
+reach_target_task.cpp
+reach_target_task.h
+    Definitions: ReachTargetTask
+    Given a Map, a start point and an end point, computes a suitable path
+    and drives the manta vehicle through it. Implements RobotTask, depends on
+    HeightMap, RRTPlanner, PathFollowingTask, MantaController.
+
+executor-path.cpp
+    Main driver that executes a PathFollowingTask
+
+executor-planner.cpp
+    Main driver that executes a ReachTargetTask
+
+
+
+

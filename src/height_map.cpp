@@ -69,7 +69,7 @@ Point2D HeightMap::sample_Cfree( MapOrigin o ){
 //    return p;
     if( o == MapOrigin::CENTER_CENTER )
         return Point2D( uniform_x(rng) - x_meters / 2.0,
-                        uniform_y(rng) - y_meters / 2.0);
+                        uniform_y(rng) - y_meters / 2.0 );
     else
         return Point2D( uniform_x(rng), uniform_y(rng) );
 }

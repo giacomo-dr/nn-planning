@@ -3,46 +3,17 @@
 // Date: 10 Apr 2017
 
 #include <iostream>
-#include <csignal>
 #include "manta_controller.h"
 #include "reach_target_task.h"
+#include "robot_task_driver.h"
 #include "svg_utils.h"
 
 
 #define SERVER_ADDRESS "127.0.0.1"
 #define SERVER_PORT 19997
 #define LOOP_DELAY_MS 100
-
 #define MAP_FILENAME "/icloud/Data/UniversitaMaster/Thesis/simpleheight.tiff"
 
-// Catch Ctr-C to proper cleanup
-volatile std::sig_atomic_t termination_signal = 0;
-void sigint_handler( int sig ){ termination_signal = 1; }
-
-void control_loop( VRepClient& client, RobotTask* task ){
-    if( task->initialize( LOOP_DELAY_MS ) == RES_OK ){
-        client.sleep( 100 ); // Initial sleep
-
-        while( client.is_connected() ){
-            if( termination_signal ){
-                task->abort();
-                client.sleep( 100 ); // Final sleep
-                return;
-            }
-
-            long now = client.get_last_cmd_time();
-            int res = task->controlStep( now );
-            if( res != RES_OK )
-                break; // Task completed or error occurred
-            client.sleep( LOOP_DELAY_MS );
-        }
-
-        if( client.is_connected() ){
-            task->finalize();
-            client.sleep(100); // Final sleep
-        }
-    }
-}
 
 void build_map( VRepClient& client, const HeightMap& map ){
     client.create_heightfield_shape(
@@ -61,8 +32,6 @@ void write_svg_of_map_and_plan( const HeightMap& map, const ReachTargetTask* tas
 }
 
 int main( int argc, char *argv[] ) {
-    std::signal( SIGINT, sigint_handler );
-
     std::cout << "Connecting to default V-rep server...";
     VRepClient client( SERVER_ADDRESS, SERVER_PORT );
     client.connect();
@@ -78,16 +47,22 @@ int main( int argc, char *argv[] ) {
     double target_yaw = 0;
 
     if( client.is_connected() ){
+        // Prepare simulation
         client.start_simulation();
         client.sleep( 100 );
         MantaController manta( client );
         build_map( client, map );
         manta.set_pose( start_position, start_orientation );
         client.sleep( 100 );
+
+        // Execute task
         ReachTargetTask* task = new ReachTargetTask(
                 manta, map, start_position_2d, start_yaw,
                 target_position_2d, target_yaw );
-        control_loop( client, task );
+        RobotTaskDriver driver( client, LOOP_DELAY_MS );
+        driver.execute( task );
+
+        // Post execution duties and cleanup
         write_svg_of_map_and_plan( map, task );
         delete task;
         client.stop_simulation();
@@ -97,15 +72,3 @@ int main( int argc, char *argv[] ) {
 
     return 0;
 }
-
-/*
-    // wheel radius:         0.09
-    // wheel base:             0.6
-    // wheel track:             0.35
-    // maximum steering rate:     70 deg/sec
-
-    // the maximum steer angle 30 degree
-    max_steer_angle=0.5235987
-    // the maximum torque of the motor
-    motor_torque=60
-*/
