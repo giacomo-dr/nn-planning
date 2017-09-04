@@ -1,6 +1,20 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
-PROJECT(MantaController)
+PROJECT(NNPlanning)
+set(CMAKE_CXX_STANDARD 11)
+
+# --------------- antlr4 ---------------
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+set(ANTLR4CPP_JAR_LOCATION ${PROJECT_SOURCE_DIR}/thirdparty/antlr/antlr-4.7-complete.jar)
+include(ExternalAntlr4Cpp)
+include_directories(${ANTLR4CPP_INCLUDE_DIRS})
+link_directories(${ANTLR4CPP_LIBS})
+message(STATUS "Found antlr4cpp libs: ${ANTLR4CPP_LIBS} and includes: ${ANTLR4CPP_INCLUDE_DIRS}")
+antlr4cpp_process_grammar(mantacontroller nnplanning
+        ${CMAKE_CURRENT_SOURCE_DIR}/grammars/DOT.g4
+        ${CMAKE_CURRENT_SOURCE_DIR}/grammars/emptylexer.g4)
+include_directories(${antlr4cpp_include_dirs_nnplanning})
+
 
 # --------------- V-Rep includes directory ---------------
 set(VREP_BASE "/Applications/V-REP_PRO_EDU_V3_4_0_Mac/programming")
@@ -41,7 +55,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c++11 -g")
 set(VREP_SRCS "${VREP_BASE}/remoteApi/extApi.c" "${VREP_BASE}/remoteApi/extApiPlatform.c")
 file(GLOB_RECURSE MANTA_SRCS "src/*.cpp")
 list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/executor-path.cpp")  # Compile only one main() at once
-add_executable(mantacontroller ${MANTA_SRCS} ${VREP_SRCS})
-target_link_libraries(mantacontroller ${Boost_LIBRARIES} ${OpenCV_LIBS})
+list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/executor-planner.cpp")  # Compile only one main() at once
+add_executable(mantacontroller ${MANTA_SRCS} ${VREP_SRCS} ${antlr4cpp_src_files_nnplanning})
+add_dependencies(mantacontroller antlr4cpp antlr4cpp_generation_nnplanning)
+target_link_libraries(mantacontroller ${Boost_LIBRARIES} ${OpenCV_LIBS} antlr4-runtime)
+
+# The following command is needed to find antlr4 dll
+add_custom_command(TARGET mantacontroller POST_BUILD
+    COMMAND install_name_tool -change libantlr4-runtime.4.7.dylib @executable_path/locals/antlr4cpp/lib/libantlr4-runtime.4.7.dylib mantacontroller
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Adjust path to libantlr4-runtime.4.7.dylib into mantacontroller executable"
+)
 
 
