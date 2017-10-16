@@ -2,45 +2,24 @@
 // Author: Giacomo Del Rio
 // Date: 1 Sep 2017
 
+
 #include <iostream>
-#include <fstream>
-#include "antlr4-runtime.h"
-#include "DOTLexer.h"
-#include "DOTParser.h"
-#include "DOTBaseListener.h"
-#include "DOTBaseVisitor.h"
-
-
-//class DotListener : public nnplanning::DOTBaseListener {
-//public:
-//    void enterGraph( nnplanning::DOTParser::GraphContext *ctx ) override {
-//        std::cout << "Magnesio\n";
-//    }
-//};
-
-class DotVisitor : public nnplanning::DOTBaseVisitor {
-public:
-    virtual antlrcpp::Any visitGraph( nnplanning::DOTParser::GraphContext *ctx ) override {
-        std::cout << "Magnesio\n";
-        return visitChildren(ctx);
-    }
-};
+#include "traversability_graph.h"
 
 
 int main() {
-    std::ifstream stream;
-    stream.open( "../../traversability_graphs_dataset/graphs/t_graph_cnn_heightmap1_full.dot" );
-    antlr4::ANTLRInputStream input( stream );
-    nnplanning::DOTLexer lexer( &input );
-    antlr4::CommonTokenStream tokens( &lexer );
-    nnplanning::DOTParser parser( &tokens );
-    antlr4::tree::ParseTree *tree = parser.graph();
 
-    DotVisitor visitor;
-    visitor.visit( tree );
-//    DotListener listener;
-//    antlr4::tree::ParseTreeWalker::DEFAULT.walk( &listener, tree );
+    TraversabilityGraph tg( 64, 64, 1 );
+    tg.load_from_dotfile( "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_custom9_full.dot" );
 
+    std::cout << tg.get( 1, 1, 0 ) << std::endl;
+    std::cout << tg.get( 1, 1, 1 ) << std::endl;
+    std::cout << tg.get( 1, 1, 2 ) << std::endl;
+    std::cout << tg.get( 1, 1, 3 ) << std::endl;
+    std::cout << tg.get( 1, 1, 4 ) << std::endl;
+    std::cout << tg.get( 1, 1, 5 ) << std::endl;
+    std::cout << tg.get( 1, 1, 6 ) << std::endl;
+    std::cout << tg.get( 1, 1, 7 ) << std::endl;
     return 0;
 }
 

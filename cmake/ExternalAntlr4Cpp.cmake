@@ -217,7 +217,7 @@ macro(antlr4cpp_process_grammar
       COMPILE_FLAGS -Wno-overloaded-virtual
       )
   endforeach(generated_file)
-  message(STATUS "Antlr4Cpp  ${antlr4cpp_project_namespace} Generated: ${generated_files}")
+  message(STATUS "Antlr4Cpp ${antlr4cpp_project_namespace} Generated: ${generated_files}")
 
   # export generated include directory
   set(antlr4cpp_include_dirs_${antlr4cpp_project_namespace} ${ANTLR4CPP_GENERATED_SRC_DIR}/${antlr4cpp_project_namespace})
