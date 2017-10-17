@@ -4,6 +4,7 @@
 
 
 #include <iostream>
+#include <math.h>
 #include "traversability_graph.h"
 
 
@@ -12,14 +13,21 @@ int main() {
     TraversabilityGraph tg( 64, 64, 1 );
     tg.load_from_dotfile( "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_custom9_full.dot" );
 
+//    std::cout << tg.get( 1, 1, 0 ) << std::endl;
+//    std::cout << tg.get( 1, 1, 1 ) << std::endl;
+//    std::cout << tg.get( 1, 1, 2 ) << std::endl;
+//    std::cout << tg.get( 1, 1, 3 ) << std::endl;
+//    std::cout << tg.get( 1, 1, 4 ) << std::endl;
+//    std::cout << tg.get( 1, 1, 5 ) << std::endl;
+//    std::cout << tg.get( 1, 1, 6 ) << std::endl;
+//    std::cout << tg.get( 1, 1, 7 ) << std::endl;
+
     std::cout << tg.get( 1, 1, 0 ) << std::endl;
-    std::cout << tg.get( 1, 1, 1 ) << std::endl;
     std::cout << tg.get( 1, 1, 2 ) << std::endl;
-    std::cout << tg.get( 1, 1, 3 ) << std::endl;
-    std::cout << tg.get( 1, 1, 4 ) << std::endl;
-    std::cout << tg.get( 1, 1, 5 ) << std::endl;
-    std::cout << tg.get( 1, 1, 6 ) << std::endl;
-    std::cout << tg.get( 1, 1, 7 ) << std::endl;
+    std::cout << tg.getLinear( 1.0, 1.0, 3.0/2.0*M_PI ) << std::endl;
+    std::cout << tg.getLinear( 1.0, 1.0, M_PI / 4.0 ) << std::endl;
+    std::cout << tg.getLinear( 1.0, 1.0, M_PI / 8.0 ) << std::endl;
+
     return 0;
 }
 

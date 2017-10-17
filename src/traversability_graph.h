@@ -11,13 +11,29 @@
 #include "DOTBaseVisitor.h"
 
 
+/*
+  The array probabilities holds the traversability information
+  in this arrangement, for each (x,y):
+
+                      [2] Pi/4
+                [3] *    |    * [1]
+                      *  |  *
+                        *|*
+           Pi [4]  ------ ------  [0] 0=2Pi
+                        *|*
+                      *  |  *
+                [5] *    |    * [7]
+                      [6] 3/2Pi
+ */
 class TraversabilityGraph {
 public:
     TraversabilityGraph( int n_rows, int n_columns, double step_meters );
     virtual ~TraversabilityGraph(){};
 
     void load_from_dotfile( std::string filename );
-    float& get( int x, int y, int dir );
+    double& get( int x, int y, int dir );
+    double getLinear( double x, double y, double alpha );
+
     int nrows();
     int ncolumns();
     double step();
@@ -25,7 +41,7 @@ public:
 private:
     int n_rows, n_columns;       // Number of rows and columns of the graph
     double step_meters;          // Distance, in meters, between two adjacent rows or columns
-    std::unique_ptr<float[]> probabilities;  // Probabilities: size = n_rows * n_columns * 8
+    std::unique_ptr<double[]> probabilities;  // Probabilities: size = n_rows * n_columns * 8
 };
 
 
