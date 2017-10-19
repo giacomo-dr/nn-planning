@@ -13,7 +13,8 @@
 
 /*
   The array probabilities holds the traversability information
-  in this arrangement, for each (x,y):
+  in this arrangement, for each (x,y) there are 8 directions,
+  indexed from 0 to 7, for which the probability is given:
 
                       [2] Pi/4
                 [3] *    |    * [1]
@@ -27,7 +28,7 @@
  */
 class TraversabilityGraph {
 public:
-    TraversabilityGraph( int n_rows, int n_columns, double step_meters );
+    TraversabilityGraph( int n_rows, int n_columns );
     virtual ~TraversabilityGraph(){};
 
     void load_from_dotfile( std::string filename );
@@ -36,11 +37,9 @@ public:
 
     int nrows();
     int ncolumns();
-    double step();
 
 private:
     int n_rows, n_columns;       // Number of rows and columns of the graph
-    double step_meters;          // Distance, in meters, between two adjacent rows or columns
     std::unique_ptr<double[]> probabilities;  // Probabilities: size = n_rows * n_columns * 8
 };
 

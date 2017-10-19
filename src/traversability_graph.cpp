@@ -47,15 +47,13 @@ antlrcpp::Any TGraphDotVisitor::visitEdge_stmt( DOTParser::Edge_stmtContext *ctx
         abort();
     }
 
-    std::cout << src << " -> " << dst << " [" << prob << "]" << std::endl;
+    //std::cout << src << " -> " << dst << " [" << prob << "]" << std::endl;
     return visitChildren(ctx);
 }
 
-TraversabilityGraph::TraversabilityGraph( int n_rows, int n_columns,
-                                          double step_meters ){
+TraversabilityGraph::TraversabilityGraph( int n_rows, int n_columns ){
     this->n_rows = n_rows;
     this->n_columns = n_columns;
-    this->step_meters = step_meters;
     probabilities.reset( new double[n_rows * n_columns * 8] );
     for( int i = 0 ; i < n_rows * n_columns * 8 ; ++i )
         probabilities[i] = 0.0;
@@ -97,9 +95,9 @@ double TraversabilityGraph::getLinear( double x, double y, double alpha ) {
     double a0 = floor( a ), a1 = ((int)a0 + 1) % 8;
     double ad = a - a0;
 
-    std::cout << "x0: " << x0 << "  x1: " << x1 << std::endl;
-    std::cout << "y0: " << y0 << "  y1: " << y1 << std::endl;
-    std::cout << "a0: " << a0 << "  a1: " << a1 << std::endl;
+//    std::cout << "x0: " << x0 << "  x1: " << x1 << std::endl;
+//    std::cout << "y0: " << y0 << "  y1: " << y1 << std::endl;
+//    std::cout << "a0: " << a0 << "  a1: " << a1 << std::endl;
 
     double c00 = get(x0, y0, a0) * (1.0 - xd) + get(x1, y0, a0) * xd;
     double c01 = get(x0, y0, a1) * (1.0 - xd) + get(x1, y0, a1) * xd;
@@ -115,5 +113,3 @@ double TraversabilityGraph::getLinear( double x, double y, double alpha ) {
 int TraversabilityGraph::nrows(){ return n_rows; }
 
 int TraversabilityGraph::ncolumns(){ return n_columns; }
-
-double TraversabilityGraph::step(){ return step_meters; }

@@ -70,15 +70,3 @@ int main( int argc, char *argv[] ) {
 
     return 0;
 }
-
-/*
-    // wheel radius:         0.09
-    // wheel base:             0.6
-    // wheel track:             0.35
-    // maximum steering rate:     70 deg/sec
-
-    // the maximum steer angle 30 degree
-    max_steer_angle=0.5235987
-    // the maximum torque of the motor
-    motor_torque=60
-*/

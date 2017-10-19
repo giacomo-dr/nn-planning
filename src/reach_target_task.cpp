@@ -5,7 +5,7 @@
 #include "reach_target_task.h"
 
 
-ReachTargetTask::ReachTargetTask( MantaController& manta, HeightMap map,
+ReachTargetTask::ReachTargetTask( MantaController& manta, HeightMap& map,
                                   Point2D start_pos, double start_yaw,
                                   Point2D target_pos, double target_yaw )
         : manta(manta), map(map){

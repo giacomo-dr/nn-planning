@@ -15,7 +15,7 @@
 
 class ReachTargetTask : public RobotTask {
 public:
-    ReachTargetTask( MantaController& manta, HeightMap map,
+    ReachTargetTask( MantaController& manta, HeightMap& map,
                      Point2D start_pos, double start_yaw,
                      Point2D target_pos, double target_yaw );
 
@@ -31,7 +31,7 @@ private:
     MantaController& manta;
     std::unique_ptr<PathFollowingTask> follow_task;
     RRTPlanner rrt_planner;
-    HeightMap map;
+    HeightMap& map;
     Point2D start_pos, target_pos;
     double start_yaw, target_yaw;
 };

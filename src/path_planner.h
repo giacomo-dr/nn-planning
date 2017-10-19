@@ -37,7 +37,7 @@ class RRTPlanner {
 public:
     RRTPlanner();
     RRTPlanner( HeightMap* map, double growth_factor,
-                unsigned int greediness, unsigned int  max_iterations,
+                unsigned int greediness, unsigned int max_iterations,
                 double max_segment_angle );
     void set_parameters( double growth_factor, unsigned int greediness,
                          unsigned int max_iterations, double max_segment_angle );

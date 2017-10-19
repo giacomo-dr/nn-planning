@@ -18,7 +18,12 @@ HeightMap::HeightMap( std::string filename, double x_meters, double z_meters ){
 
 bool HeightMap::load_image( std::string filename ){
     image = cv::imread( filename, cv::IMREAD_GRAYSCALE );
-    return image.data;
+    return image.data != nullptr;
+}
+
+void HeightMap::load_traversability_graph( std::string filename, int n_rows, int n_columns ){
+    t_graph.reset( new TraversabilityGraph( n_rows, n_columns ) );
+    t_graph->load_from_dotfile( filename );
 }
 
 void HeightMap::set_dimensions( double x_meters, double z_meters ){
@@ -72,6 +77,24 @@ Point2D HeightMap::sample_Cfree( MapOrigin o ){
                         uniform_y(rng) - y_meters / 2.0 );
     else
         return Point2D( uniform_x(rng), uniform_y(rng) );
+}
+
+double HeightMap::traversability_prob( MapOrigin o, double pos_x, double pos_y, double yaw ) {
+    assert(0 <= yaw && yaw < M_PI * 2.0);
+
+    if( o == MapOrigin::CENTER_CENTER ){
+        assert(-x_meters / 2.0 <= pos_x && pos_x < x_meters / 2.0);
+        assert(-y_meters / 2.0 <= pos_y && pos_y < y_meters / 2.0);
+        return t_graph->getLinear(((pos_x + x_meters / 2.0) / x_meters) * (double)(t_graph->ncolumns()-1),
+                                  ((pos_y + y_meters / 2.0) / y_meters) * (double)(t_graph->nrows()-1),
+                                  yaw);
+    }else{
+        assert( 0 <= pos_x && pos_x < x_meters );
+        assert( 0 <= pos_y && pos_y < y_meters );
+        return t_graph->getLinear((pos_x / x_meters) * (double)(t_graph->ncolumns()-1),
+                                  (pos_y / y_meters) * (double)(t_graph->nrows()-1),
+                                  yaw);
+    }
 }
 
 cv::Mat HeightMap::extract_patch( double center_x, double center_y,

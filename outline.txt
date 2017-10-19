@@ -37,6 +37,11 @@ robot_task_driver.h
     A RobotTaskDriver takes a RobotTask and runs it into the VRep environment. It runs the
     simulation loop and react to sigint signals for premature termination.
 
+traversability_graph.cpp:
+traversability_graph.h:
+    Definitions: TraversabilityGraph
+    Holds precomputed traversability information for a given height map.
+
 height_map.cpp
 height_map.h
     Definitions: HeightMap
