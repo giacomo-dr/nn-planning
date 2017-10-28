@@ -29,11 +29,12 @@ void MantaController::set_position( double x, double y, double z ){
 }
 
 void MantaController::set_orientation( double a, double b, double g ){
-    vrep.set_object_orientation( base_handle, a, b, g );
+    vrep.set_object_orientation( base_handle, a, b, g - M_PI_2 ); // Fix bad yaw in VRep
 }
 
 void MantaController::set_pose( Point3D pos, Point3D orient ){
-    vrep.set_dynamic_object_pose( base_handle, pos, orient );
+    Point3D adjOrient( orient.x(), orient.y(), orient.z() - M_PI_2 ); // Fix bad yaw in VRep
+    vrep.set_dynamic_object_pose( base_handle, pos, adjOrient );
 }
 
 void MantaController::register_for_getting_pose( int delay_ms ){

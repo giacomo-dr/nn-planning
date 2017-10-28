@@ -43,7 +43,6 @@ void control_loop( VRepClient& client, RobotTask* task ){
 
 WaypointPath2D make_path(){
     WaypointPath2D path;
-    path.intialYaw = 0;
     path.waypoints.push_back( Point2D(0, 0) );
     path.waypoints.push_back( Point2D(4, 0) );
     path.waypoints.push_back( Point2D(4, 4) );

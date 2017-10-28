@@ -12,7 +12,9 @@
 #define SERVER_ADDRESS "127.0.0.1"
 #define SERVER_PORT 19997
 #define LOOP_DELAY_MS 100
-#define MAP_FILENAME "/icloud/Data/UniversitaMaster/Thesis/simpleheight.tiff"
+// #define MAP_FILENAME "/icloud/Data/UniversitaMaster/Thesis/simpleheight.tiff"
+#define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/custom9.png"
+#define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_custom9_full.dot"
 
 
 void build_map( VRepClient& client, const HeightMap& map ){
@@ -39,12 +41,12 @@ int main( int argc, char *argv[] ) {
 
     // Simulation parameters
     HeightMap map( MAP_FILENAME, 10, 0.4 );
-    Point3D start_position( 0, -4, 0.3 );
+    Point3D start_position( 0, -4, 0 );
     Point3D start_orientation( 0, 0, 0 );
     Point2D start_position_2d( start_position.x(), start_position.y() );
     double start_yaw = start_orientation.z();
-    Point2D target_position_2d( 3, 4.5 );
-    double target_yaw = 0;
+    Point2D target_position_2d( -4, 0 );
+    double target_yaw = 3.0 * M_PI_2;
 
     if( client.is_connected() ){
         // Prepare simulation
