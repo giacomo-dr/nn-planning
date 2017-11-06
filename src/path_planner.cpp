@@ -19,23 +19,26 @@ RRTPlanner::RRTPlanner(){
 
 RRTPlanner::RRTPlanner( HeightMap* map, double growth_factor,
                         unsigned int greediness, unsigned int  max_iterations,
-                        double max_segment_angle )
+                        double max_segment_angle, double traversability_threshold )
         : map(map){
     this->growth_factor = growth_factor;
     this->greediness = greediness;
     this->max_iterations = max_iterations;
     this->max_segment_angle = max_segment_angle;
+    this->traversability_threshold = traversability_threshold;
     start_point.setZero();
     target_point.setZero();
     start_yaw = target_yaw = 0;
 }
 
 void RRTPlanner::set_parameters( double growth_factor, unsigned int greediness,
-                                 unsigned int max_iterations, double max_segment_angle ){
+                                 unsigned int max_iterations, double max_segment_angle,
+                                 double traversability_threshold ){
     this->growth_factor = growth_factor;
     this->greediness = greediness;
     this->max_iterations = max_iterations;
     this->max_segment_angle = max_segment_angle;
+    this->traversability_threshold = traversability_threshold;
 }
 
 void RRTPlanner::set_map( HeightMap* map ){
@@ -91,7 +94,7 @@ long RRTPlanner::expand_to_target(){
         if( (p.first - target_point).norm() <= growth_factor ){
             // Try to connect directly to target
             if( abs_angle( p, target_point ) < max_segment_angle
-                && is_traversable( p.first, target_point ) > 0.99
+                && is_traversable( p.first, target_point )
                 && std::fabs( angle_difference( get_yaw(target_point - p.first), target_yaw ) ) < max_segment_angle ){
                 // Direct connection with target found!
                 long idx = rrt.add_node( RRTNode( target_point, p.second ) );
@@ -116,7 +119,7 @@ void RRTPlanner::expand_to_point( Point2D to ){
         std::cout << "  Considering (" << p.first.x() << ", " << p.first.y() << ")\n";
         if( abs_angle( p, to ) < max_segment_angle ){
             Point2D step = compute_step( p.first, to );
-            if( in_bounds( step ) && is_traversable( p.first, step ) > 0.99 ){
+            if( in_bounds( step ) && is_traversable( p.first, step ) ){
                 long idx = rrt.add_node( RRTNode( step, p.second ) );
                 nodes_index.insert( std::make_pair(step, idx) );
                 std::cout << "    Expanded !\n";
@@ -160,18 +163,25 @@ double RRTPlanner::abs_angle( const RTreeValue& n, const Point2D& p2 ) const {
     return std::fabs( angle_difference( angle_b, angle_a ) );
 }
 
-double RRTPlanner::is_traversable( const Point2D& p1, const Point2D& p2 ) const {
-    std::cout << "    patch from (" << p1.x() << ", " << p1.y() << ") to ("
-              << p2.x() << ", " << p2.y() << ")\n" ;
-    Point2D patch_center = (p2 + p1) / 2.0;
-    std::cout << "    patch_center = (" << patch_center.x() << ", " << patch_center.y() << ")\n";
-    std::cout << "    patch_angle = " << get_yaw( p2 - p1 ) << "\n";
-    cv::Mat patch = map->extract_patch( patch_center.x(), patch_center.y(),
-                                        0.7, growth_factor, get_yaw( p2 - p1 ),
-                                        MapOrigin::CENTER_CENTER );
-    double min, max;
-    cv::minMaxLoc( patch, &min, &max );
-    return 1.0 - std::fabs(max - min) / 256.0;
+bool RRTPlanner::is_traversable( const Point2D& p1, const Point2D& p2 ) const {
+//    std::cout << "    patch from (" << p1.x() << ", " << p1.y() << ") to ("
+//              << p2.x() << ", " << p2.y() << ")\n" ;
+//    Point2D patch_center = (p2 + p1) / 2.0;
+//    std::cout << "    patch_center = (" << patch_center.x() << ", " << patch_center.y() << ")\n";
+//    std::cout << "    patch_angle = " << get_yaw( p2 - p1 ) << "\n";
+//    cv::Mat patch = map->extract_patch( patch_center.x(), patch_center.y(),
+//                                        0.7, growth_factor, get_yaw( p2 - p1 ),
+//                                        MapOrigin::CENTER_CENTER );
+//    double min, max;
+//    cv::minMaxLoc( patch, &min, &max );
+//    return 1.0 - std::fabs(max - min) / 256.0;
+
+    double yaw = get_yaw( p2 - p1 );
+    yaw = yaw >= 0 ? yaw : 2.0 * M_PI + yaw;
+    double prob = map->traversability_prob( MapOrigin::CENTER_CENTER, p1.x(), p2.x(), yaw );
+    //std::cout << "    segment angle = " << yaw << "\n";
+    std::cout << "    probability = " << prob << "\n";
+    return  prob >= traversability_threshold;
 }
 
 bool RRTPlanner::in_bounds( const Point2D &p ) const {

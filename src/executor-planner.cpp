@@ -41,6 +41,7 @@ int main( int argc, char *argv[] ) {
 
     // Simulation parameters
     HeightMap map( MAP_FILENAME, 10, 0.4 );
+    map.load_traversability_graph( TG_FILENAME, 64, 64 );
     Point3D start_position( 0, -4, 0 );
     Point3D start_orientation( 0, 0, 0 );
     Point2D start_position_2d( start_position.x(), start_position.y() );

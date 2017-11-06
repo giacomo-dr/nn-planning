@@ -38,9 +38,10 @@ public:
     RRTPlanner();
     RRTPlanner( HeightMap* map, double growth_factor,
                 unsigned int greediness, unsigned int max_iterations,
-                double max_segment_angle );
+                double max_segment_angle, double traversability_threshold );
     void set_parameters( double growth_factor, unsigned int greediness,
-                         unsigned int max_iterations, double max_segment_angle );
+                         unsigned int max_iterations, double max_segment_angle,
+                         double traversability_threshold );
     void set_map( HeightMap* map );
     const RRTPlan& get_plan() const;
     const WaypointPath2D& get_path() const;
@@ -53,6 +54,7 @@ private:
     unsigned int greediness;
     unsigned int max_iterations;
     double max_segment_angle;
+    double traversability_threshold;
 
     RRTPlan rrt;
     typedef std::pair<Point2D, int> RTreeValue;
@@ -69,7 +71,7 @@ private:
     void build_shortest_path( long final_node_idx );
     Point2D compute_step( const Point2D& p1, const Point2D& p2 ) const;
     double abs_angle( const RTreeValue& n, const Point2D& p2 ) const;
-    double is_traversable( const Point2D& p1, const Point2D& p2 ) const;
+    bool is_traversable( const Point2D& p1, const Point2D& p2 ) const;
     bool in_bounds( const Point2D& p ) const;
     static double angle_between( const Point2D& from, const Point2D& to );
     static double angle_difference( double alpha_1, double alpha_2 );
