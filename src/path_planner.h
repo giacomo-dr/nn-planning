@@ -19,10 +19,13 @@ namespace bgi = boost::geometry::index;
 struct RRTNode {
     Point2D vertex;
     int parent;
+    double probability;
 
-    RRTNode() : parent(-1) {}
-    RRTNode( Point2D vertex, int parent) :
-            vertex(vertex), parent(parent) {}
+    RRTNode() : parent(-1), probability(0) {}
+    RRTNode( Point2D vertex, int parent ) :
+            vertex(vertex), parent(parent), probability(0) {}
+    RRTNode( Point2D vertex, int parent, double probability ) :
+            vertex(vertex), parent(parent), probability(probability) {}
 };
 
 struct RRTPlan {
@@ -70,6 +73,7 @@ private:
     void expand_to_point( Point2D p );
     void build_shortest_path( long final_node_idx );
     Point2D compute_step( const Point2D& p1, const Point2D& p2 ) const;
+    double step_probability( const Point2D& p1, const Point2D& p2 ) const;
     double abs_angle( const RTreeValue& n, const Point2D& p2 ) const;
     bool is_traversable( const Point2D& p1, const Point2D& p2 ) const;
     bool in_bounds( const Point2D& p ) const;

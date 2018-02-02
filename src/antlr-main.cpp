@@ -5,10 +5,10 @@
 
 #include <iostream>
 #include <iomanip>
-#include <math.h>
+#include <cmath>
 #include "lodepng.h"
-#include "traversability_graph.h"
-#include "height_map.h"
+#include "reach_target_task.h"
+
 
 #define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/custom9.png"
 #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_custom9_full.dot"
@@ -53,24 +53,69 @@ int main() {
     std::vector<unsigned char> image;
     image.resize(width * height * 4);
     int i = 0;
-    for( double angle = 0 ; angle < M_PI * 2.0 ; i++, angle += 0.01 ){
-        for (unsigned y = 0; y < height; y++)
-            for (unsigned x = 0; x < width; x++) {
-                double xd = (x / 640.0) * 63.0;
-                double yd = (y / 640.0) * 63.0;
+//    for( double angle = 0 ; angle < M_PI * 2.0 ; i++, angle += M_PI / 2.0 ){
+//        for (unsigned y = 0; y < height; y++)
+//            for (unsigned x = 0; x < width; x++) {
+//                double xd = (x / 640.0) * 63.0;
+//                double yd = (y / 640.0) * 63.0;
+//
+//                //std::cout << xd << "," << yd << std::endl;
+//                unsigned char val = (unsigned char)(tg.getLinear( xd, yd, angle ) * 255);
+//                image[4 * width * y + 4 * x + 0] = val;
+//                image[4 * width * y + 4 * x + 1] = val;
+//                image[4 * width * y + 4 * x + 2] = val;
+//                image[4 * width * y + 4 * x + 3] = 255;
+//            }
+//        std::ostringstream fname;
+//        fname << "tgraphs/tgraph_" << std::setfill('0') << std::setw(4) << i << ".png";
+//        std::cout << fname.str() << std::endl;
+//        encodeOneStep( fname.str().c_str(), image, width, height );
+//        std::cout << angle << std::endl;
+//    }
+//
+//    // Do the same as before but querying map instead of tg
+//    image.resize(width * height * 4);
+//    i = 0;
+//    for( double angle = 0 ; angle < M_PI * 2.0 ; i++, angle += M_PI / 2.0 ){
+//        for (unsigned y = 0; y < height; y++)
+//            for (unsigned x = 0; x < width; x++) {
+//                double xd = (x / 640.0) * map.size_x_mt();
+//                double yd = (y / 640.0) * map.size_y_mt();
+//
+//                //std::cout << xd << "," << yd << std::endl;
+//                unsigned char val = (unsigned char)
+//                        (map.traversability_prob( MapOrigin::TOP_LEFT, xd, yd, angle ) * 255);
+//                image[4 * width * y + 4 * x + 0] = val;
+//                image[4 * width * y + 4 * x + 1] = val;
+//                image[4 * width * y + 4 * x + 2] = val;
+//                image[4 * width * y + 4 * x + 3] = 255;
+//            }
+//        std::ostringstream fname;
+//        fname << "tgraphs/tgraph_" << std::setfill('0') << std::setw(4) << i << "_map.png";
+//        std::cout << fname.str() << std::endl;
+//        encodeOneStep( fname.str().c_str(), image, width, height );
+//        std::cout << angle << std::endl;
+//    }
 
-                //std::cout << xd << "," << yd << std::endl;
-                unsigned char val = tg.getLinear( xd, yd, angle ) * 255;
-                image[4 * width * y + 4 * x + 0] = val;
-                image[4 * width * y + 4 * x + 1] = val;
-                image[4 * width * y + 4 * x + 2] = val;
-                image[4 * width * y + 4 * x + 3] = 255;
-            }
-        std::ostringstream fname;
-        fname << "video/tgraph_" << std::setfill('0') << std::setw(4) << i << ".png";
-        encodeOneStep( fname.str().c_str(), image, width, height );
-        std::cout << angle << std::endl;
-    }
+    // Generate an image with a red pixel where the step is traversable, with a given threshold
+    RRTPlanner planner( &map, 0.3, 100, 5000, M_PI_4, 0.92 );
+    for (unsigned y = 0; y < height; y++)
+        for (unsigned x = 0; x < width; x++) {
+            double xd = (x / 640.0) * map.size_x_mt() - map.size_x_mt() / 2.0;
+            double yd = (y / 640.0) * map.size_y_mt() - map.size_y_mt() / 2.0;
+
+            std::cout << "y = " << y << " size_y_mt = " << map.size_y_mt() << std::endl;
+            std::cout << "xd = " << xd << " yd = " << yd << std::endl;
+            unsigned char val = planner.is_traversable( Point2D(xd, yd), Point2D(xd-0.1, yd) ) ? 255 : 0;
+            image[4 * width * y + 4 * x + 0] = 0;
+            image[4 * width * y + 4 * x + 1] = 0;
+            image[4 * width * y + 4 * x + 2] = val;
+            image[4 * width * y + 4 * x + 3] = val;
+        }
+    std::ostringstream fname;
+    fname << "tgraphs/tgraph_" << std::setfill('0') << std::setw(4) << i << "_tv_left.png";
+    std::cout << fname.str() << std::endl;
+    encodeOneStep( fname.str().c_str(), image, width, height );
 
     return 0;
 }

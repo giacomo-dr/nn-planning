@@ -5,7 +5,7 @@
 #include <cassert>
 #include <iostream>
 #include <fstream>
-#include <math.h>
+#include <cmath>
 #include "traversability_graph.h"
 #include "DOTLexer.h"
 #include "DOTParser.h"
@@ -95,14 +95,20 @@ double TraversabilityGraph::getLinear( double x, double y, double alpha ) {
     double a0 = floor( a ), a1 = ((int)a0 + 1) % 8;
     double ad = a - a0;
 
-//    std::cout << "x0: " << x0 << "  x1: " << x1 << std::endl;
-//    std::cout << "y0: " << y0 << "  y1: " << y1 << std::endl;
-//    std::cout << "a0: " << a0 << "  a1: " << a1 << std::endl;
+//    std::cout << "      x0: " << x0 << "  x1: " << x1 << std::endl;
+//    std::cout << "      y0: " << y0 << "  y1: " << y1 << std::endl;
+//    std::cout << "      a0: " << a0 << "  a1: " << a1 << std::endl;
 
     double c00 = get(x0, y0, a0) * (1.0 - xd) + get(x1, y0, a0) * xd;
     double c01 = get(x0, y0, a1) * (1.0 - xd) + get(x1, y0, a1) * xd;
     double c10 = get(x0, y1, a0) * (1.0 - xd) + get(x1, y1, a0) * xd;
     double c11 = get(x0, y1, a1) * (1.0 - xd) + get(x1, y1, a1) * xd;
+
+//    std::cout << "      get(x0, y0, a0): " << get(x0, y0, a0) << std::endl;
+//    std::cout << "      c00: " << c00 << std::endl;
+//    std::cout << "      c01: " << c01 << std::endl;
+//    std::cout << "      c10: " << c10 << std::endl;
+//    std::cout << "      c11: " << c11 << std::endl;
 
     double c0 = c00 * (1.0 - yd) + c10 * yd;
     double c1 = c01 * (1.0 - yd) + c11 * yd;

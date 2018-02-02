@@ -85,8 +85,8 @@ double HeightMap::traversability_prob( MapOrigin o, double pos_x, double pos_y, 
     if( o == MapOrigin::CENTER_CENTER ){
         assert(-x_meters / 2.0 <= pos_x && pos_x < x_meters / 2.0);
         assert(-y_meters / 2.0 <= pos_y && pos_y < y_meters / 2.0);
-        return t_graph->getLinear(((pos_x + x_meters / 2.0) / x_meters) * (double)(t_graph->ncolumns()-1),
-                                  ((pos_y + y_meters / 2.0) / y_meters) * (double)(t_graph->nrows()-1),
+        return t_graph->getLinear((0.5 + pos_x / x_meters) * (double)(t_graph->ncolumns()-1),
+                                  (0.5 - pos_y / y_meters) * (double)(t_graph->nrows()-1),
                                   yaw);
     }else{
         assert( 0 <= pos_x && pos_x < x_meters );
@@ -109,9 +109,9 @@ cv::Mat HeightMap::extract_patch( double center_x, double center_y,
                                     image.rows - center_y / y_meters * image.rows );
     cv::Point2f patch_size( width / x_meters * image.cols,
                             height / y_meters * image.rows );
-    std::cout << "    Image patch center (" << patch_center.x << ", " << patch_center.y << ")\n";
-    std::cout << "    Image patch size (" << patch_size.x << ", " << patch_size.y << ")\n";
-    std::cout << "    Image patch angle (" << 90.0 - angle * 180.0 / M_PI << ")\n";
+//    std::cout << "    Image patch center (" << patch_center.x << ", " << patch_center.y << ")\n";
+//    std::cout << "    Image patch size (" << patch_size.x << ", " << patch_size.y << ")\n";
+//    std::cout << "    Image patch angle (" << 90.0 - angle * 180.0 / M_PI << ")\n";
     cv::Mat image_rotated, patch;
     cv::RotatedRect rect( patch_center, patch_size, 90.0 - angle * 180.0 / M_PI );
     cv::Mat M = getRotationMatrix2D( rect.center, rect.angle, 1.0 );

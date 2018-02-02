@@ -60,7 +60,7 @@ int RRTPlanner::build_plan( Point2D start, double start_yaw,
     this->start_yaw = start_yaw; this->target_yaw = target_yaw;
 
     // Add starting point
-    rrt.root = rrt.add_node( RRTNode( start, -1 ) );
+    rrt.root = rrt.add_node( RRTNode( start, -1, 0 ) );
     nodes_index.insert( std::make_pair(start, rrt.root) );
 
     // Grow the tree until target is reached or we have hit
@@ -93,14 +93,15 @@ long RRTPlanner::expand_to_target(){
     for( const RTreeValue& p: nearest_k )
         if( (p.first - target_point).norm() <= growth_factor ){
             // Try to connect directly to target
-            if( abs_angle( p, target_point ) < max_segment_angle
-                && is_traversable( p.first, target_point )
-                && std::fabs( angle_difference( get_yaw(target_point - p.first), target_yaw ) ) < max_segment_angle ){
+            double step_prob = std::log1p( step_probability( p.first, target_point ) );
+            if( abs_angle( p, target_point ) < max_segment_angle &&
+                step_prob > std::log1p( traversability_threshold ) ){
+                //std::fabs( angle_difference( get_yaw(target_point - p.first), target_yaw ) ) < max_segment_angle ){
+                double branch_prob = rrt.nodes[p.second].probability;
                 // Direct connection with target found!
-                long idx = rrt.add_node( RRTNode( target_point, p.second ) );
+                long idx = rrt.add_node( RRTNode( target_point, p.second, step_prob + branch_prob ) );
                 nodes_index.insert( std::make_pair(target_point, idx) );
                 std::cout << "Target found and put in node " << idx << "\n";
-                std::cout << rrt.nodes[idx].vertex << "\n";
                 return idx;
             }
         }
@@ -114,15 +115,20 @@ void RRTPlanner::expand_to_point( Point2D to ){
     // Find nearest 10 nodes to expansion point
     std::vector<RTreeValue> nearest_k;
     nodes_index.query( bgi::nearest(to, 10), back_inserter(nearest_k) );
-    std::cout << "Expand to (" << to.x() << ", " << to.y() << ")\n";
+//    std::cout << "Expand to (" << to.x() << ", " << to.y() << ")\n";
     for( const RTreeValue& p: nearest_k ){
-        std::cout << "  Considering (" << p.first.x() << ", " << p.first.y() << ")\n";
+//        std::cout << "  Considering (" << p.first.x() << ", " << p.first.y() << ")\n";
+//        std::cout << "    Step Vector (" << (to - p.first).x() << ", " << (to - p.first).y() << ")\n";
         if( abs_angle( p, to ) < max_segment_angle ){
             Point2D step = compute_step( p.first, to );
-            if( in_bounds( step ) && is_traversable( p.first, step ) ){
-                long idx = rrt.add_node( RRTNode( step, p.second ) );
+            // Test for traversability
+            double step_prob = std::log1p( step_probability( p.first, to ) );
+//            std::cout << "    Step probability: " << step_prob << " >? " << traversability_threshold << "\n";
+            if( in_bounds( step ) && step_prob > std::log1p( traversability_threshold ) ){
+                double branch_prob = rrt.nodes[p.second].probability;
+                long idx = rrt.add_node( RRTNode( step, p.second, step_prob + branch_prob ) );
                 nodes_index.insert( std::make_pair(step, idx) );
-                std::cout << "    Expanded !\n";
+//                std::cout << "    Expanded !\n";
                 return; // Tree expanded
             }
         }
@@ -135,7 +141,7 @@ void RRTPlanner::build_shortest_path( long final_node_idx ){
     shortest_path.clear();
     RRTNode n = rrt.nodes[final_node_idx];
     do{
-        std::cout << "Pushing (" << n.vertex.x() << ", " << n.vertex.y() << ")\n";
+//        std::cout << "Pushing (" << n.vertex.x() << ", " << n.vertex.y() << ")\n";
         shortest_path.waypoints.push_back( n.vertex );
         n = rrt.nodes[n.parent];
     }while( n.parent != -1 );
@@ -148,6 +154,13 @@ Point2D RRTPlanner::compute_step( const Point2D& p1, const Point2D& p2 ) const {
     return p1 + growth_factor * (p2-p1).normalized();
 }
 
+double RRTPlanner::step_probability( const Point2D& p1, const Point2D& p2 ) const {
+    double yaw = get_yaw( p2 - p1 );
+    yaw = yaw >= 0 ? yaw : 2.0 * M_PI + yaw;
+//    std::cout << "    yaw = " << get_yaw( p2 - p1 ) << " abs(yaw) = " << yaw << "\n";
+    return map->traversability_prob( MapOrigin::CENTER_CENTER, p1.x(), p1.y(), yaw );
+}
+
 double RRTPlanner::abs_angle( const RTreeValue& n, const Point2D& p2 ) const {
     double angle_a, angle_b;
     if( rrt.nodes[n.second].parent == -1 )
@@ -158,8 +171,8 @@ double RRTPlanner::abs_angle( const RTreeValue& n, const Point2D& p2 ) const {
         angle_a = get_yaw( n.first - rrt.nodes[rrt.nodes[n.second].parent].vertex ); // Inner node
     }
     angle_b = get_yaw( p2 - n.first );
-    std::cout << "    angle_a = " << angle_a << ", angle_b = " << angle_b << " => ";
-    std::cout << "Angle = " << std::fabs( angle_difference( angle_b, angle_a ) ) << "\n";
+//    std::cout << "    angle_a = " << angle_a << ", angle_b = " << angle_b << " => ";
+//    std::cout << "Angle = " << std::fabs( angle_difference( angle_b, angle_a ) ) << "\n";
     return std::fabs( angle_difference( angle_b, angle_a ) );
 }
 
@@ -175,13 +188,8 @@ bool RRTPlanner::is_traversable( const Point2D& p1, const Point2D& p2 ) const {
 //    double min, max;
 //    cv::minMaxLoc( patch, &min, &max );
 //    return 1.0 - std::fabs(max - min) / 256.0;
-
-    double yaw = get_yaw( p2 - p1 );
-    yaw = yaw >= 0 ? yaw : 2.0 * M_PI + yaw;
-    double prob = map->traversability_prob( MapOrigin::CENTER_CENTER, p1.x(), p2.x(), yaw );
-    //std::cout << "    segment angle = " << yaw << "\n";
-    std::cout << "    probability = " << prob << "\n";
-    return  prob >= traversability_threshold;
+    double step_prob = std::log1p( step_probability( p1, p2 ) );
+    return in_bounds( p2 ) && step_prob > std::log1p( traversability_threshold );
 }
 
 bool RRTPlanner::in_bounds( const Point2D &p ) const {

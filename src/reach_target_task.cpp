@@ -14,7 +14,7 @@ ReachTargetTask::ReachTargetTask( MantaController& manta, HeightMap& map,
     this->start_yaw = start_yaw;
     this->target_yaw = target_yaw;
     rrt_planner.set_map( &(this->map) );
-    rrt_planner.set_parameters( 0.5, 100, 5000, M_PI_4, 0.8 );
+    rrt_planner.set_parameters( 0.3, 100, 5000, M_PI_4, 0.8 );
 }
 
 CallResult ReachTargetTask::initialize( int loop_delay_ms ){
