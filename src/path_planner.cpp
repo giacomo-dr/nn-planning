@@ -25,7 +25,7 @@ RRTPlanner::RRTPlanner( HeightMap* map, double growth_factor,
     this->greediness = greediness;
     this->max_iterations = max_iterations;
     this->max_segment_angle = max_segment_angle;
-    this->traversability_threshold = traversability_threshold;
+    this->traversability_threshold = log(traversability_threshold);
     start_point.setZero();
     target_point.setZero();
     start_yaw = target_yaw = 0;
@@ -38,7 +38,7 @@ void RRTPlanner::set_parameters( double growth_factor, unsigned int greediness,
     this->greediness = greediness;
     this->max_iterations = max_iterations;
     this->max_segment_angle = max_segment_angle;
-    this->traversability_threshold = traversability_threshold;
+    this->traversability_threshold = log(traversability_threshold);
 }
 
 void RRTPlanner::set_map( HeightMap* map ){
@@ -60,7 +60,7 @@ int RRTPlanner::build_plan( Point2D start, double start_yaw,
     this->start_yaw = start_yaw; this->target_yaw = target_yaw;
 
     // Add starting point
-    rrt.root = rrt.add_node( RRTNode( start, -1, 0 ) );
+    rrt.root = rrt.add_node( RRTNode( start, -1, 1 ) );
     nodes_index.insert( std::make_pair(start, rrt.root) );
 
     // Grow the tree until target is reached or we have hit
@@ -93,9 +93,9 @@ long RRTPlanner::expand_to_target(){
     for( const RTreeValue& p: nearest_k )
         if( (p.first - target_point).norm() <= growth_factor ){
             // Try to connect directly to target
-            double step_prob = std::log1p( step_probability( p.first, target_point ) );
+            double step_prob = std::log( step_probability( p.first, target_point ) );
             if( abs_angle( p, target_point ) < max_segment_angle &&
-                step_prob > std::log1p( traversability_threshold ) ){
+                step_prob > traversability_threshold ){
                 //std::fabs( angle_difference( get_yaw(target_point - p.first), target_yaw ) ) < max_segment_angle ){
                 double branch_prob = rrt.nodes[p.second].probability;
                 // Direct connection with target found!
@@ -122,9 +122,9 @@ void RRTPlanner::expand_to_point( Point2D to ){
         if( abs_angle( p, to ) < max_segment_angle ){
             Point2D step = compute_step( p.first, to );
             // Test for traversability
-            double step_prob = std::log1p( step_probability( p.first, to ) );
+            double step_prob = std::log( step_probability( p.first, to ) );
 //            std::cout << "    Step probability: " << step_prob << " >? " << traversability_threshold << "\n";
-            if( in_bounds( step ) && step_prob > std::log1p( traversability_threshold ) ){
+            if( in_bounds( step ) && step_prob > traversability_threshold ){
                 double branch_prob = rrt.nodes[p.second].probability;
                 long idx = rrt.add_node( RRTNode( step, p.second, step_prob + branch_prob ) );
                 nodes_index.insert( std::make_pair(step, idx) );
@@ -188,8 +188,8 @@ bool RRTPlanner::is_traversable( const Point2D& p1, const Point2D& p2 ) const {
 //    double min, max;
 //    cv::minMaxLoc( patch, &min, &max );
 //    return 1.0 - std::fabs(max - min) / 256.0;
-    double step_prob = std::log1p( step_probability( p1, p2 ) );
-    return in_bounds( p2 ) && step_prob > std::log1p( traversability_threshold );
+    double step_prob = std::log( step_probability( p1, p2 ) );
+    return in_bounds( p2 ) && step_prob > traversability_threshold;
 }
 
 bool RRTPlanner::in_bounds( const Point2D &p ) const {

@@ -31,17 +31,31 @@ void write_height_map( SVGWriter& svg, const HeightMap& map ){
 }
 
 void write_rrt_plan( SVGWriter& svg, const RRTPlan& plan ){
-    svg.set_style_property( "fill", "rgba(255,0,0,1)" );
-    svg.set_style_property( "stroke", "rgba(255,0,0,1)" );
-    svg.set_style_property( "stroke-width", "0.1" );
+    // Find the node with min value of probability
+    auto min_res = std::min_element( plan.nodes.begin(), plan.nodes.end(),
+                                     [](const RRTNode& a, const RRTNode& b) { return a.probability < b.probability; } );
+    double min_prob = (*min_res).probability;
+    double norm_factor = 1.0 / (1.0 - min_prob);
+
+    // Print nodes and edges
     for( const RRTNode& p: plan.nodes ){
+        double intensity = (p.probability - min_prob) * norm_factor;
+        std::ostringstream rgba_str;
+        rgba_str << "rgba(255,0,0," << intensity << ")";
+        const char* rgba = rgba_str.str().c_str();
+        svg.set_style_property( "fill", rgba );
+        svg.set_style_property( "stroke", rgba );
+        svg.set_style_property( "stroke-width", "0" );
+
         svg.write_circle( p.vertex.x() * scale_factor,
                           p.vertex.y() * scale_factor, 0.3 );
-        if( p.parent != -1 )
-            svg.write_segment( p.vertex.x() * scale_factor,
-                               p.vertex.y() * scale_factor,
-                               plan.nodes[p.parent].vertex.x() * scale_factor,
-                               plan.nodes[p.parent].vertex.y() * scale_factor);
+        if( p.parent != -1 ) {
+            svg.set_style_property( "stroke-width", "0.1" );
+            svg.write_segment(p.vertex.x() * scale_factor,
+                              p.vertex.y() * scale_factor,
+                              plan.nodes[p.parent].vertex.x() * scale_factor,
+                              plan.nodes[p.parent].vertex.y() * scale_factor);
+        }
     }
 }
 
