@@ -19,11 +19,10 @@ namespace bgi = boost::geometry::index;
 struct RRTNode {
     Point2D vertex;
     int parent;
+    std::vector<int> children;
     double probability;
 
     RRTNode() : parent(-1), probability(0) {}
-    RRTNode( Point2D vertex, int parent ) :
-            vertex(vertex), parent(parent), probability(0) {}
     RRTNode( Point2D vertex, int parent, double probability ) :
             vertex(vertex), parent(parent), probability(probability) {}
 };
@@ -33,7 +32,7 @@ struct RRTPlan {
     std::vector<RRTNode> nodes;
 
     void clear(){ root = -1; nodes.clear(); }
-    long add_node( RRTNode n ){ nodes.push_back(n); return nodes.size() -1; }
+    long add_node( RRTNode n );
 };
 
 class RRTPlanner {
@@ -75,6 +74,7 @@ private:
     void build_shortest_path( long final_node_idx );
     Point2D compute_step( const Point2D& p1, const Point2D& p2 ) const;
     double step_probability( const Point2D& p1, const Point2D& p2 ) const;
+    bool has_similar_sibling( const RRTNode& n, const Point2D& to ) const;
     double abs_angle( const RTreeValue& n, const Point2D& p2 ) const;
     bool in_bounds( const Point2D& p ) const;
     static double angle_between( const Point2D& from, const Point2D& to );

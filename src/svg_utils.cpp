@@ -34,8 +34,8 @@ void write_rrt_plan( SVGWriter& svg, const RRTPlan& plan ){
     // Find the node with min value of probability
     auto min_res = std::min_element( plan.nodes.begin(), plan.nodes.end(),
                                      [](const RRTNode& a, const RRTNode& b) { return a.probability < b.probability; } );
-    double min_prob = (*min_res).probability;
-    double norm_factor = 1.0 / (1.0 - min_prob);
+    double min_prob = (*min_res).probability * 1.25;
+    double norm_factor = -1.0 / min_prob;
 
     // Print nodes and edges
     for( const RRTNode& p: plan.nodes ){
