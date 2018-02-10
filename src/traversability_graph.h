@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <cassert>
 #include "antlr4-runtime.h"
 #include "DOTBaseVisitor.h"
 

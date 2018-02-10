@@ -6,15 +6,21 @@
 
 
 PIDPathFollower::PIDPathFollower() :
-    linPidController(1.0, 0, 0, 30),
-    angPidController(1.0, 0, 0, 30)
+    linPidController(PF_DEFAULT_PID_PROPORTIONAL_GAIN,
+                     PF_DEFAULT_PID_INTEGRAL_GAIN,
+                     PF_DEFAULT_PID_DERIVATIVE_GAIN,
+                     PF_DEFAULT_PID_INTEGRAL_WINDOW),
+    angPidController(PF_DEFAULT_PID_PROPORTIONAL_GAIN,
+                     PF_DEFAULT_PID_INTEGRAL_GAIN,
+                     PF_DEFAULT_PID_DERIVATIVE_GAIN,
+                     PF_DEFAULT_PID_INTEGRAL_WINDOW)
 {
-    this->maxLinVel = 1.0;
-    this->maxAngVel = 1.0;
-    this->maxLinAcc = 10.0;
-    this->maxAngAcc = 10.0;
-    this->pathBlending = 0.01;
-    this->inPlaceRotationThreshold = 100.0; // Never rotate in place
+    this->maxLinVel = PF_DEFAULT_MAX_LINEAR_VEL;
+    this->maxAngVel = PF_DEFAULT_MAX_ANGULAR_VEL;
+    this->maxLinAcc = PF_DEFAULT_MAX_LINEAR_ACC;
+    this->maxAngAcc = PF_DEFAULT_MAX_ANGULAR_ACC;
+    this->pathBlending = PF_DEFAULT_PATH_BLENDING;
+    this->inPlaceRotationThreshold = PF_DEFAULT_INPLACE_ROTATION_THRESHOLD;
     this->currentWaypoint = 0;
     this->prevLinVel = 0;
     this->prevAngVel = 0;
@@ -84,6 +90,7 @@ int PIDPathFollower::_compute_errors( double x, double y, double theta,
 {
     lin_error = dst( x, y, path.waypoints[currentWaypoint].x(),
                      path.waypoints[currentWaypoint].y() );
+
     double target_theta;
     if( lin_error < pathBlending ){
         if( currentWaypoint == path.waypoints.size() -1 ){
@@ -107,7 +114,7 @@ int PIDPathFollower::_compute_errors( double x, double y, double theta,
 
     // Ignore small angle errors
     ang_error = angleDifference( target_theta, theta );
-    if( fabs(ang_error) < 0.02 )
+    if( fabs(ang_error) < PF_DEFAULT_ANGLE_TOLERANCE )
         ang_error = 0.0;
 
     // If ang_error is bigger than the threshold, then rotate in place

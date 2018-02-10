@@ -82,13 +82,18 @@ double& TraversabilityGraph::get( int x, int y, int dir ){
 }
 
 double TraversabilityGraph::getLinear( double x, double y, double alpha ) {
-    assert( 0 <= x && x < n_columns - 1 );
-    assert( 0 <= y && y < n_rows - 1 );
+//    std::cout << "      x: " << x << "  y: " << y << std::endl;
+//    std::cout << "      n_rows: " << n_rows << "  n_columns: " << n_columns << std::endl;
+//    std::cout << "      test: " << (0 <= y && y < n_rows) << std::endl;
+    assert( 0 <= x && x <= n_columns - 1 );
+    assert( 0 <= y && y <= n_rows - 1 );
     assert( 0 <= alpha && alpha < M_PI * 2.0 );
 
     // Trilinear interpolation: en.wikipedia.org/wiki/Trilinear_interpolation
-    double x0 = floor( x ), x1 = x0 + 1;
-    double y0 = floor( y ), y1 = y0 + 1;
+    double x0 = floor( x );
+    int x1 = (int)(x0 + 1) % n_columns;
+    double y0 = floor( y );
+    int y1 = (int)(y0 + 1) % n_rows;
     double xd = x - x0;
     double yd = y - y0;
     double a = alpha / (2.0 * M_PI) * 8.0; // [0, 2Pi] -> [0, 8]

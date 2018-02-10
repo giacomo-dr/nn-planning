@@ -12,9 +12,38 @@
 #define SERVER_ADDRESS "127.0.0.1"
 #define SERVER_PORT 19997
 #define LOOP_DELAY_MS 100
-// #define MAP_FILENAME "/icloud/Data/UniversitaMaster/Thesis/simpleheight.tiff"
+
+#define CUSTOM
+
+#ifdef CUSTOM
+#define MAP_OUTPUT_FILENAME "map.svg"
 #define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/custom9.png"
+#define MAP_X_METERS 10.0
+#define MAP_HEIGHT 0.4
 #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_custom9_full.dot"
+#define TG_SIZE 64
+#define START_POS_X 0
+#define START_POS_Y -4
+#define START_YAW 0
+#define TARGET_POS_X -4
+#define TARGET_POS_Y 4
+#define TARGET_YAW (2.0 * M_PI_2)
+#endif
+
+#ifdef ROCKS
+#define MAP_OUTPUT_FILENAME "map.svg"
+#define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/arc_rocks.png"
+#define MAP_X_METERS 10.0
+#define MAP_HEIGHT 0.4
+#define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_arc_rocks_full.dot"
+#define TG_SIZE 64
+#define START_POS_X -3
+#define START_POS_Y -3
+#define START_YAW M_PI_2
+#define TARGET_POS_X -3
+#define TARGET_POS_Y 3
+#define TARGET_YAW M_PI_2
+#endif
 
 
 void build_map( VRepClient& client, const HeightMap& map ){
@@ -24,7 +53,7 @@ void build_map( VRepClient& client, const HeightMap& map ){
 }
 
 void write_svg_of_map_and_plan( const HeightMap& map, const ReachTargetTask* task ){
-    svg::SVGWriter svg_out( "map.svg" );
+    svg::SVGWriter svg_out( MAP_OUTPUT_FILENAME );
     svg::utils::initialize_svg_writer( svg_out, map );
     svg_out.begin();
     svg::utils::write_height_map( svg_out, map );
@@ -34,20 +63,20 @@ void write_svg_of_map_and_plan( const HeightMap& map, const ReachTargetTask* tas
 }
 
 int main( int argc, char *argv[] ) {
-    std::cout << "Connecting to default V-rep server...";
+    std::cout << "Connecting to V-rep server...";
     VRepClient client( SERVER_ADDRESS, SERVER_PORT );
     client.connect();
     std::cout << (client.is_connected() ? "ok\n" : "failed\n");
 
     // Simulation parameters
-    HeightMap map( MAP_FILENAME, 10, 0.4 );
-    map.load_traversability_graph( TG_FILENAME, 64, 64 );
-    Point3D start_position( 0, -4, 0 );
-    Point3D start_orientation( 0, 0, 0 );
+    HeightMap map( MAP_FILENAME, MAP_X_METERS, MAP_HEIGHT );
+    map.load_traversability_graph( TG_FILENAME, TG_SIZE, TG_SIZE );
+    Point3D start_position( START_POS_X, START_POS_Y, 0.1 );
+    Point3D start_orientation( 0, 0, START_YAW );
     Point2D start_position_2d( start_position.x(), start_position.y() );
     double start_yaw = start_orientation.z();
-    Point2D target_position_2d( -4, 0 );
-    double target_yaw = 3.0 * M_PI_2;
+    Point2D target_position_2d( TARGET_POS_X, TARGET_POS_Y );
+    double target_yaw = TARGET_YAW;
 
     if( client.is_connected() ){
         // Prepare simulation

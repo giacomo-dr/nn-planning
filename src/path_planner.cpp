@@ -7,11 +7,17 @@
 #include <cmath>
 #include "path_planner.h"
 
+#define PP_DEFAULT_GROWTH_FACTOR 1
+#define PP_DEFAULT_GREEDYNESS 10
+#define PP_DEFAULT_MAX_ITERATIONS 1000
+#define PP_NEIGHBORS_EXPAND 1000
+
+
 RRTPlanner::RRTPlanner(){
     this->map = NULL;
-    this->growth_factor = 1;
-    this->greediness = 10;
-    this->max_iterations = 1000;
+    this->growth_factor = PP_DEFAULT_GROWTH_FACTOR;
+    this->greediness = PP_DEFAULT_GREEDYNESS;
+    this->max_iterations = PP_DEFAULT_MAX_ITERATIONS;
     start_point.setZero();
     target_point.setZero();
     start_yaw = target_yaw = 0;
@@ -89,7 +95,10 @@ void RRTPlanner::reset(){
 long RRTPlanner::expand_to_target(){
     // Find nearest 10 nodes to target
     std::vector<RTreeValue> nearest_k;
-    nodes_index.query( bgi::nearest(target_point, 10), back_inserter(nearest_k) );
+    //nodes_index.query( bgi::nearest(target_point, PP_NEIGHBORS_EXPAND), back_inserter(nearest_k) );
+    std::copy( nodes_index.qbegin(bgi::nearest(target_point, PP_NEIGHBORS_EXPAND)),
+               nodes_index.qend(),
+               std::back_inserter(nearest_k) );
     for( const RTreeValue& p: nearest_k )
         if( (p.first - target_point).norm() <= growth_factor ){
             // Try to connect directly to target
@@ -114,27 +123,33 @@ long RRTPlanner::expand_to_target(){
 void RRTPlanner::expand_to_point( Point2D to ){
     // Find nearest 10 nodes to expansion point
     std::vector<RTreeValue> nearest_k;
-    nodes_index.query( bgi::nearest(to, 10), back_inserter(nearest_k) );
-//    std::cout << "Expand to (" << to.x() << ", " << to.y() << ")\n";
+    std::copy( nodes_index.qbegin(bgi::nearest(to, PP_NEIGHBORS_EXPAND)),
+               nodes_index.qend(),
+               std::back_inserter(nearest_k) );
+    std::cout << "Expand to (" << to.x() << ", " << to.y() << ")\n";
     for( const RTreeValue& p: nearest_k ){
-//        std::cout << "  Considering (" << p.first.x() << ", " << p.first.y() << ")\n";
-//        std::cout << "    Step Vector (" << (to - p.first).x() << ", " << (to - p.first).y() << ")\n";
+        std::cout << "  Considering (" << p.first.x() << ", " << p.first.y() << ")\n";
+        std::cout << "    Delta vector (" << (to - p.first).x() << ", " << (to - p.first).y() << ")\n";
         if( abs_angle( p, to ) < max_segment_angle ){
             Point2D step = compute_step( p.first, to );
+            std::cout << "    Step (" << step.x() << ", " << step.y() << ")\n";
             // Test for traversability
             double step_prob = std::log( step_probability( p.first, to ) );
-//            std::cout << "    Step probability: " << step_prob << " >? " << traversability_threshold << "\n";
+            assert( step_prob <= 0 );
+            std::cout << "    Step probability: " << step_prob << " >? " << traversability_threshold << "\n";
             if( in_bounds( step ) && step_prob > traversability_threshold ){
                 double branch_prob = rrt.nodes[p.second].probability;
+                std::cout << "    Branch probability: " << branch_prob << "\n";
                 long idx = rrt.add_node( RRTNode( step, p.second, step_prob + branch_prob ) );
                 nodes_index.insert( std::make_pair(step, idx) );
-//                std::cout << "    Expanded !\n";
+                std::cout << "    Expanded!\n";
                 return; // Tree expanded
             }
         }
     }
 
     // Tree not expanded, just return
+    std::cout << "    Not expanded!\n";
 }
 
 void RRTPlanner::build_shortest_path( long final_node_idx ){

@@ -5,6 +5,13 @@
 #include "reach_target_task.h"
 
 
+#define RRT_GROWTH_FACTOR 0.3
+#define RRT_GREEDYNESS 10
+#define RRT_MAX_ITERATIONS 2000
+#define RRT_MAX_SEGMENT_ANGLE (M_PI / 6.0)
+#define RRT_TRAVERSABILITY_THRESHOLD 0.9
+
+
 ReachTargetTask::ReachTargetTask( MantaController& manta, HeightMap& map,
                                   Point2D start_pos, double start_yaw,
                                   Point2D target_pos, double target_yaw )
@@ -14,7 +21,9 @@ ReachTargetTask::ReachTargetTask( MantaController& manta, HeightMap& map,
     this->start_yaw = start_yaw;
     this->target_yaw = target_yaw;
     rrt_planner.set_map( &(this->map) );
-    rrt_planner.set_parameters( 0.3, 100, 5000, M_PI_4, 0.8 );
+    rrt_planner.set_parameters( RRT_GROWTH_FACTOR, RRT_GREEDYNESS,
+                                RRT_MAX_ITERATIONS, RRT_MAX_SEGMENT_ANGLE,
+                                RRT_TRAVERSABILITY_THRESHOLD );
 }
 
 CallResult ReachTargetTask::initialize( int loop_delay_ms ){

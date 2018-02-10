@@ -50,6 +50,7 @@ public:
     const WaypointPath2D& get_path() const;
     int build_plan( Point2D start, double start_yaw,
                     Point2D target, double target_yaw );
+    bool is_traversable( const Point2D& p1, const Point2D& p2 ) const;
 
 private:
     HeightMap* map;
@@ -75,7 +76,6 @@ private:
     Point2D compute_step( const Point2D& p1, const Point2D& p2 ) const;
     double step_probability( const Point2D& p1, const Point2D& p2 ) const;
     double abs_angle( const RTreeValue& n, const Point2D& p2 ) const;
-    bool is_traversable( const Point2D& p1, const Point2D& p2 ) const;
     bool in_bounds( const Point2D& p ) const;
     static double angle_between( const Point2D& from, const Point2D& to );
     static double angle_difference( double alpha_1, double alpha_2 );
