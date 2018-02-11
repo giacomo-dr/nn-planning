@@ -5,13 +5,6 @@
 #include "reach_target_task.h"
 
 
-#define RRT_GROWTH_FACTOR 0.3
-#define RRT_GREEDYNESS 10
-#define RRT_MAX_ITERATIONS 5000
-#define RRT_MAX_SEGMENT_ANGLE (M_PI / 6.0)
-#define RRT_TRAVERSABILITY_THRESHOLD 0.9
-
-
 ReachTargetTask::ReachTargetTask( MantaController& manta, HeightMap& map,
                                   Point2D start_pos, double start_yaw,
                                   Point2D target_pos, double target_yaw )
@@ -20,10 +13,28 @@ ReachTargetTask::ReachTargetTask( MantaController& manta, HeightMap& map,
     this->target_pos = target_pos;
     this->start_yaw = start_yaw;
     this->target_yaw = target_yaw;
+    this->rrt_growth_factor = 0.3;
+    this->rrt_greedyness = 10;
+    this->rrt_max_iterations = 5000;
+    this->rrt_max_segment_angle = M_PI / 6.0;
+    this->rrt_traversability_threshold = 0.9;
     rrt_planner.set_map( &(this->map) );
-    rrt_planner.set_parameters( RRT_GROWTH_FACTOR, RRT_GREEDYNESS,
-                                RRT_MAX_ITERATIONS, RRT_MAX_SEGMENT_ANGLE,
-                                RRT_TRAVERSABILITY_THRESHOLD );
+    rrt_planner.set_parameters( rrt_growth_factor, rrt_greedyness,
+                                rrt_max_iterations, rrt_max_segment_angle,
+                                rrt_traversability_threshold );
+}
+
+void ReachTargetTask::setRRTParameters( double growth_factor, double greedyness,
+                                        double max_iterations, double max_segment_angle,
+                                        double traversability_threshold){
+    this->rrt_growth_factor = growth_factor;
+    this->rrt_greedyness = greedyness;
+    this->rrt_max_iterations = max_iterations;
+    this->rrt_max_segment_angle = max_segment_angle;
+    this->rrt_traversability_threshold = traversability_threshold;
+    rrt_planner.set_parameters( rrt_growth_factor, rrt_greedyness,
+                                rrt_max_iterations, rrt_max_segment_angle,
+                                rrt_traversability_threshold );
 }
 
 CallResult ReachTargetTask::initialize( int loop_delay_ms ){

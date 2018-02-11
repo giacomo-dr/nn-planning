@@ -18,7 +18,9 @@ public:
     ReachTargetTask( MantaController& manta, HeightMap& map,
                      Point2D start_pos, double start_yaw,
                      Point2D target_pos, double target_yaw );
-
+    void setRRTParameters( double growth_factor, double greedyness,
+                           double max_iterations, double max_segment_angle,
+                           double traversability_threshold);
     virtual CallResult initialize( int loop_delay_ms );
     virtual void finalize();
     virtual CallResult controlStep( long time_now );
@@ -34,6 +36,12 @@ private:
     HeightMap& map;
     Point2D start_pos, target_pos;
     double start_yaw, target_yaw;
+
+    double rrt_growth_factor;
+    double rrt_greedyness;
+    double rrt_max_iterations;
+    double rrt_max_segment_angle;
+    double rrt_traversability_threshold;
 };
 
 

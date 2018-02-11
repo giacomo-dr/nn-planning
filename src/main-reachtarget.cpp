@@ -28,6 +28,11 @@
 #define TARGET_POS_X -4
 #define TARGET_POS_Y 4
 #define TARGET_YAW (2.0 * M_PI_2)
+#define RRT_GROWTH_FACTOR 1
+#define RRT_GREEDYNESS 10
+#define RRT_MAX_ITERATIONS 5000
+#define RRT_MAX_SEGMENT_ANGLE (M_PI / 6.0)
+#define RRT_TRAVERSABILITY_THRESHOLD 0.9
 #endif
 
 #ifdef ROCKS
@@ -43,6 +48,11 @@
 #define TARGET_POS_X -3
 #define TARGET_POS_Y 3
 #define TARGET_YAW M_PI_2
+#define RRT_GROWTH_FACTOR 1
+#define RRT_GREEDYNESS 10
+#define RRT_MAX_ITERATIONS 5000
+#define RRT_MAX_SEGMENT_ANGLE (M_PI / 6.0)
+#define RRT_TRAVERSABILITY_THRESHOLD 0.9
 #endif
 
 
@@ -91,6 +101,9 @@ int main( int argc, char *argv[] ) {
         ReachTargetTask* task = new ReachTargetTask(
                 manta, map, start_position_2d, start_yaw,
                 target_position_2d, target_yaw );
+        task->setRRTParameters( RRT_GROWTH_FACTOR, RRT_GREEDYNESS,
+                                RRT_MAX_ITERATIONS, RRT_MAX_SEGMENT_ANGLE,
+                                RRT_TRAVERSABILITY_THRESHOLD );
         RobotTaskDriver driver( client, LOOP_DELAY_MS );
         driver.execute( task );
 
