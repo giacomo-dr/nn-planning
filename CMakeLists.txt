@@ -55,8 +55,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -Wall -std=c++11 -g")
 set(VREP_SRCS "${VREP_BASE}/remoteApi/extApi.c" "${VREP_BASE}/remoteApi/extApiPlatform.c")
 file(GLOB_RECURSE MANTA_SRCS "src/*.cpp")
 list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-pathfollowing.cpp")  # Compile only one main() at once
-#list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-reachtarget.cpp")  # Compile only one main() at once
-list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-maptest.cpp")  # Compile only one main() at once
+list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-reachtarget.cpp")  # Compile only one main() at once
+#list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-maptest.cpp")  # Compile only one main() at once
 add_executable(mantacontroller ${MANTA_SRCS} ${VREP_SRCS} ${antlr4cpp_src_files_nnplanning})
 add_dependencies(mantacontroller antlr4cpp antlr4cpp_generation_nnplanning)
 target_link_libraries(mantacontroller ${Boost_LIBRARIES} ${OpenCV_LIBS} antlr4-runtime)
