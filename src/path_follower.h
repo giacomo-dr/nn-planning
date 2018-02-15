@@ -18,7 +18,7 @@
 #define  PF_DEFAULT_PID_PROPORTIONAL_GAIN 1.0
 #define  PF_DEFAULT_PID_INTEGRAL_GAIN 0
 #define  PF_DEFAULT_PID_DERIVATIVE_GAIN 0
-#define  PF_DEFAULT_PID_INTEGRAL_WINDOW 30
+#define  PF_PID_INTEGRAL_WINDOW 30
 #define  PF_DEFAULT_MAX_LINEAR_VEL 1.0
 #define  PF_DEFAULT_MAX_LINEAR_ACC 10.0
 #define  PF_DEFAULT_MAX_ANGULAR_VEL 1.0
@@ -31,27 +31,63 @@
 class PIDPathFollower
 {
   public:
+
+    struct Parameters{
+        double linProportionalGain;      // Linear PID proportional gain
+        double linIntegralGain;          // Linear PID integral gain
+        double linDerivativeGain;        // Linear PID derivative gain
+        double angProportionalGain;      // Angular PID proportional gain
+        double angIntegralGain;          // Angular PID integral gain
+        double angDerivativeGain;        // Angular PID derivative gain
+        double maxLinVel;                // Maximum allowable linear velocity
+        double maxAngVel;                // Maximum allowable angular velocity
+        double maxLinAcc;                // Maximum allowable linear acceleration
+        double maxAngAcc;                // Maximum allowable angular acceleration
+        double pathBlending;             // Distance to trigger the next waypoint
+        double angleTolerance;           // Ignore angle errors smaller than this
+        double inPlaceRotationThreshold; // Rotate in place if target angle is bigger than this value
+        bool   antiLoop;                 // If true, prevents circle loops around a waypoint
+    };
+
     PIDPathFollower();
     void setPath( const WaypointPath2D& path );
-    void setLinearPIDGains( double k_p, double k_i, double k_d );
-    void setAngularPIDGains( double k_p, double k_i, double k_d );
-    void setMaxVelocities( double maxLinVel, double maxAngVel );
-    void setMaxAccelerations( double maxLinAcc, double maxAngAcc );
-    void setFollowingParams( double pathBlending, double inPlaceRotationThreshold );
+    void setParameters( Parameters params );
+    Parameters getParameters();
+//    void setLinearPIDGains( double k_p, double k_i, double k_d );
+//    void setAngularPIDGains( double k_p, double k_i, double k_d );
+//    void setMaxVelocities( double maxLinVel, double maxAngVel );
+//    void setMaxAccelerations( double maxLinAcc, double maxAngAcc );
+//    void setFollowingParams( double pathBlending, double inPlaceRotationThreshold );
 
     bool getVelocities( double x, double y, double theta, pidTime now,
                         double& lin_out, double& ang_out );
 
   private:
+    Parameters params = {            // Default parameters
+        .linProportionalGain = 1,
+        .linIntegralGain = 0,
+        .linDerivativeGain = 0,
+        .angProportionalGain = 1,
+        .angIntegralGain = 0,
+        .angDerivativeGain = 0,
+        .maxLinVel = 1,
+        .maxAngVel = 1,
+        .maxLinAcc = 10,
+        .maxAngAcc = 10,
+        .pathBlending = 0,
+        .angleTolerance = 0.1,
+        .inPlaceRotationThreshold = 100,
+        .antiLoop = false
+    };
     WaypointPath2D path;             // Path to follow
     PIDController linPidController;  // PID controller for linear velocity
     PIDController angPidController;  // PID controller for angular velocity
-    double maxLinVel;                // Maximum allowable linear velocity
-    double maxAngVel;                // Maximum allowable angular velocity
-    double maxLinAcc;                // Maximum allowable linear acceleration
-    double maxAngAcc;                // Maximum allowable angular acceleration
-    double pathBlending;             // Distance to trigger the next waypoint
-    double inPlaceRotationThreshold; // Rotate in place if target angle is bigger than this value
+//    double maxLinVel;                // Maximum allowable linear velocity
+//    double maxAngVel;                // Maximum allowable angular velocity
+//    double maxLinAcc;                // Maximum allowable linear acceleration
+//    double maxAngAcc;                // Maximum allowable angular acceleration
+//    double pathBlending;             // Distance to trigger the next waypoint
+//    double inPlaceRotationThreshold; // Rotate in place if target angle is bigger than this value
 
     int currentWaypoint;             // Current target waypoint
     double prevLinVel;               // Previous computed linear velocity

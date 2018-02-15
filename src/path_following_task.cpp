@@ -6,24 +6,17 @@
 #include "path_following_task.h"
 
 
-#define MAX_LINEAR_VEL 12
-#define MAX_ANGULAR_VEL 1.1
-#define MAX_LINEAR_ACC 100
-#define MAX_ANGULAR_ACC 100
-#define LINEAR_PID_GAINS 2, 1.5, 0
-#define ANGULAR_PID_GAINS 0.8, 0, 0
-#define PATH_BLENDING 0.1
-#define INPLACE_ROTATION_THRESHOLD 100
-
-
-PathFollowingTask::PathFollowingTask( MantaController& manta, WaypointPath2D path )
+PathFollowingTask::PathFollowingTask( MantaController& manta, WaypointPath2D& path )
         : manta(manta){
-    path_follower.setLinearPIDGains( LINEAR_PID_GAINS );
-    path_follower.setAngularPIDGains( ANGULAR_PID_GAINS );
-    path_follower.setFollowingParams( PATH_BLENDING, INPLACE_ROTATION_THRESHOLD );
-    path_follower.setMaxVelocities( MAX_LINEAR_VEL, MAX_ANGULAR_VEL );
-    path_follower.setMaxAccelerations( MAX_LINEAR_ACC, MAX_ANGULAR_ACC );
     path_follower.setPath( path );
+}
+
+void PathFollowingTask::setFollowerParameters( PIDPathFollower::Parameters follower_params ){
+    path_follower.setParameters( follower_params );
+}
+
+PIDPathFollower::Parameters PathFollowingTask::getFollowerParameters(){
+    return path_follower.getParameters();
 }
 
 CallResult PathFollowingTask::initialize( int loop_delay_ms ){

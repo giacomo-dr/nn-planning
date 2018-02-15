@@ -37,6 +37,10 @@ void ReachTargetTask::setRRTParameters( double growth_factor, double greedyness,
                                 rrt_traversability_threshold );
 }
 
+void ReachTargetTask::setFollowerParameters( PIDPathFollower::Parameters params ){
+    follower_params = params;
+}
+
 CallResult ReachTargetTask::initialize( int loop_delay_ms ){
     int res = rrt_planner.build_plan( start_pos, start_yaw,
                                       target_pos, target_yaw );
@@ -44,6 +48,7 @@ CallResult ReachTargetTask::initialize( int loop_delay_ms ){
         return RES_FAIL;
     WaypointPath2D path = rrt_planner.get_path();
     follow_task.reset( new PathFollowingTask( manta, path ) );
+    follow_task->setFollowerParameters( follower_params );
     return follow_task->initialize( loop_delay_ms );
 }
 

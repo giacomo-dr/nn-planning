@@ -13,7 +13,7 @@ public:
     MantaController( VRepClient& vrep );
     ~MantaController(){};
     VRepClient& get_client() const;
-    void set_velocity( double mt_sec);
+    void set_velocity( double mt_sec );
     void set_steer( double angle );
     void set_position( double x, double y, double z );
     void set_orientation( double a, double b, double g );

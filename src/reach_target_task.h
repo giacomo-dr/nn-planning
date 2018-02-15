@@ -21,10 +21,11 @@ public:
     void setRRTParameters( double growth_factor, double greedyness,
                            double max_iterations, double max_segment_angle,
                            double traversability_threshold);
-    virtual CallResult initialize( int loop_delay_ms );
-    virtual void finalize();
-    virtual CallResult controlStep( long time_now );
-    virtual void abort();
+    void setFollowerParameters( PIDPathFollower::Parameters params );
+    CallResult initialize( int loop_delay_ms ) override;
+    void finalize() override;
+    CallResult controlStep( long time_now ) override;
+    void abort() override;
 
     const RRTPlan& get_plan() const;
     const WaypointPath2D& get_path() const;
@@ -42,6 +43,7 @@ private:
     double rrt_max_iterations;
     double rrt_max_segment_angle;
     double rrt_traversability_threshold;
+    PIDPathFollower::Parameters follower_params;
 };
 
 

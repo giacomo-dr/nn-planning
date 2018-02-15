@@ -6,21 +6,21 @@
 
 
 PIDPathFollower::PIDPathFollower() :
-    linPidController(PF_DEFAULT_PID_PROPORTIONAL_GAIN,
-                     PF_DEFAULT_PID_INTEGRAL_GAIN,
-                     PF_DEFAULT_PID_DERIVATIVE_GAIN,
-                     PF_DEFAULT_PID_INTEGRAL_WINDOW),
-    angPidController(PF_DEFAULT_PID_PROPORTIONAL_GAIN,
-                     PF_DEFAULT_PID_INTEGRAL_GAIN,
-                     PF_DEFAULT_PID_DERIVATIVE_GAIN,
-                     PF_DEFAULT_PID_INTEGRAL_WINDOW)
+    linPidController(params.linProportionalGain,
+                     params.linIntegralGain,
+                     params.linDerivativeGain,
+                     PF_PID_INTEGRAL_WINDOW),
+    angPidController(params.angProportionalGain,
+                     params.angIntegralGain,
+                     params.angDerivativeGain,
+                     PF_PID_INTEGRAL_WINDOW)
 {
-    this->maxLinVel = PF_DEFAULT_MAX_LINEAR_VEL;
-    this->maxAngVel = PF_DEFAULT_MAX_ANGULAR_VEL;
-    this->maxLinAcc = PF_DEFAULT_MAX_LINEAR_ACC;
-    this->maxAngAcc = PF_DEFAULT_MAX_ANGULAR_ACC;
-    this->pathBlending = PF_DEFAULT_PATH_BLENDING;
-    this->inPlaceRotationThreshold = PF_DEFAULT_INPLACE_ROTATION_THRESHOLD;
+//    this->maxLinVel = PF_DEFAULT_MAX_LINEAR_VEL;
+//    this->maxAngVel = PF_DEFAULT_MAX_ANGULAR_VEL;
+//    this->maxLinAcc = PF_DEFAULT_MAX_LINEAR_ACC;
+//    this->maxAngAcc = PF_DEFAULT_MAX_ANGULAR_ACC;
+//    this->pathBlending = PF_DEFAULT_PATH_BLENDING;
+//    this->inPlaceRotationThreshold = PF_DEFAULT_INPLACE_ROTATION_THRESHOLD;
     this->currentWaypoint = 0;
     this->prevLinVel = 0;
     this->prevAngVel = 0;
@@ -34,34 +34,48 @@ void PIDPathFollower::setPath( const WaypointPath2D& path )
     this->prevAngVel = 0;
 }
 
-void PIDPathFollower::setLinearPIDGains( double k_p, double k_i, double k_d )
-{
-    linPidController.setGains(k_p, k_i, k_d);
+void PIDPathFollower::setParameters( PIDPathFollower::Parameters params ){
+    this->params = params;
+    linPidController.setGains( params.linProportionalGain,
+                               params.linIntegralGain,
+                               params.linDerivativeGain );
+    angPidController.setGains( params.angProportionalGain,
+                               params.angIntegralGain,
+                               params.angDerivativeGain );
 }
 
-void PIDPathFollower::setAngularPIDGains( double k_p, double k_i, double k_d )
-{
-    angPidController.setGains(k_p, k_i, k_d);
+PIDPathFollower::Parameters PIDPathFollower::getParameters(){
+    return params;
 }
 
-void PIDPathFollower::setMaxVelocities( double maxLinVel, double maxAngVel )
-{
-    this->maxLinVel = maxLinVel;
-    this->maxAngVel = maxAngVel;
-}
-
-void PIDPathFollower::setMaxAccelerations( double maxLinAcc, double maxAngAcc )
-{
-    this->maxLinAcc = maxLinAcc;
-    this->maxAngAcc = maxAngAcc;
-}
-
-void PIDPathFollower::setFollowingParams( double pathBlending,
-                                          double inPlaceRotationThreshold )
-{
-    this->pathBlending = pathBlending;
-    this->inPlaceRotationThreshold = inPlaceRotationThreshold;
-}
+//void PIDPathFollower::setLinearPIDGains( double k_p, double k_i, double k_d )
+//{
+//    linPidController.setGains(k_p, k_i, k_d);
+//}
+//
+//void PIDPathFollower::setAngularPIDGains( double k_p, double k_i, double k_d )
+//{
+//    angPidController.setGains(k_p, k_i, k_d);
+//}
+//
+//void PIDPathFollower::setMaxVelocities( double maxLinVel, double maxAngVel )
+//{
+//    this->maxLinVel = maxLinVel;
+//    this->maxAngVel = maxAngVel;
+//}
+//
+//void PIDPathFollower::setMaxAccelerations( double maxLinAcc, double maxAngAcc )
+//{
+//    this->maxLinAcc = maxLinAcc;
+//    this->maxAngAcc = maxAngAcc;
+//}
+//
+//void PIDPathFollower::setFollowingParams( double pathBlending,
+//                                          double inPlaceRotationThreshold )
+//{
+//    this->pathBlending = pathBlending;
+//    this->inPlaceRotationThreshold = inPlaceRotationThreshold;
+//}
 
 bool PIDPathFollower::getVelocities(
         double x, double y, double theta, pidTime now,
@@ -72,6 +86,7 @@ bool PIDPathFollower::getVelocities(
     int progress = _compute_errors( x, y, theta, lin_error, ang_error );
     //std::cout << "PF::Inputs: " << x << ", " << y << ", " << theta << std::endl;
     //std::cout << "PF::Errors: " << lin_error << ", " << ang_error << std::endl;
+    std::cout << "PF::Current Waypoint: " << currentWaypoint << std::endl;
 
     // Determine linear and angular velocity to issue
     lin_out = linPidController.controlStep( lin_error, now );
@@ -92,7 +107,7 @@ int PIDPathFollower::_compute_errors( double x, double y, double theta,
                      path.waypoints[currentWaypoint].y() );
 
     double target_theta;
-    if( lin_error < pathBlending ){
+    if( lin_error < params.pathBlending ){
         if( currentWaypoint == path.waypoints.size() -1 ){
             // Final waypoint of the path reached
             lin_error = 0.0;
@@ -114,11 +129,11 @@ int PIDPathFollower::_compute_errors( double x, double y, double theta,
 
     // Ignore small angle errors
     ang_error = angleDifference( target_theta, theta );
-    if( fabs(ang_error) < PF_DEFAULT_ANGLE_TOLERANCE )
+    if( fabs(ang_error) < params.angleTolerance )
         ang_error = 0.0;
 
     // If ang_error is bigger than the threshold, then rotate in place
-    if( fabs(ang_error) > inPlaceRotationThreshold )
+    if( fabs(ang_error) > params.inPlaceRotationThreshold )
         lin_error = 0.0;
 
     return currentWaypoint;
@@ -127,15 +142,15 @@ int PIDPathFollower::_compute_errors( double x, double y, double theta,
 void PIDPathFollower::_limit_velocities( double& lin_vel, double& ang_vel )
 {
     // Limits linear velocity to maximum allowable
-    if( lin_vel > maxLinVel ){
-        lin_vel = maxLinVel;
+    if( lin_vel > params.maxLinVel ){
+        lin_vel = params.maxLinVel;
     }
 
     // Limits angular velocity to maximum allowable
-    if( ang_vel > maxAngVel ){
-        ang_vel = maxAngVel;
-    }else if( ang_vel < -maxAngVel ){
-        ang_vel = -maxAngVel;
+    if( ang_vel > params.maxAngVel ){
+        ang_vel = params.maxAngVel;
+    }else if( ang_vel < -params.maxAngVel ){
+        ang_vel = -params.maxAngVel;
     }
 
 //  // Limits the linear acceleration
