@@ -15,12 +15,6 @@ PIDPathFollower::PIDPathFollower() :
                      params.angDerivativeGain,
                      PF_PID_INTEGRAL_WINDOW)
 {
-//    this->maxLinVel = PF_DEFAULT_MAX_LINEAR_VEL;
-//    this->maxAngVel = PF_DEFAULT_MAX_ANGULAR_VEL;
-//    this->maxLinAcc = PF_DEFAULT_MAX_LINEAR_ACC;
-//    this->maxAngAcc = PF_DEFAULT_MAX_ANGULAR_ACC;
-//    this->pathBlending = PF_DEFAULT_PATH_BLENDING;
-//    this->inPlaceRotationThreshold = PF_DEFAULT_INPLACE_ROTATION_THRESHOLD;
     this->currentWaypoint = 0;
     this->prevLinVel = 0;
     this->prevAngVel = 0;
@@ -48,35 +42,6 @@ PIDPathFollower::Parameters PIDPathFollower::getParameters(){
     return params;
 }
 
-//void PIDPathFollower::setLinearPIDGains( double k_p, double k_i, double k_d )
-//{
-//    linPidController.setGains(k_p, k_i, k_d);
-//}
-//
-//void PIDPathFollower::setAngularPIDGains( double k_p, double k_i, double k_d )
-//{
-//    angPidController.setGains(k_p, k_i, k_d);
-//}
-//
-//void PIDPathFollower::setMaxVelocities( double maxLinVel, double maxAngVel )
-//{
-//    this->maxLinVel = maxLinVel;
-//    this->maxAngVel = maxAngVel;
-//}
-//
-//void PIDPathFollower::setMaxAccelerations( double maxLinAcc, double maxAngAcc )
-//{
-//    this->maxLinAcc = maxLinAcc;
-//    this->maxAngAcc = maxAngAcc;
-//}
-//
-//void PIDPathFollower::setFollowingParams( double pathBlending,
-//                                          double inPlaceRotationThreshold )
-//{
-//    this->pathBlending = pathBlending;
-//    this->inPlaceRotationThreshold = inPlaceRotationThreshold;
-//}
-
 bool PIDPathFollower::getVelocities(
         double x, double y, double theta, pidTime now,
         double& lin_out, double& ang_out )
@@ -86,7 +51,7 @@ bool PIDPathFollower::getVelocities(
     int progress = _compute_errors( x, y, theta, lin_error, ang_error );
     //std::cout << "PF::Inputs: " << x << ", " << y << ", " << theta << std::endl;
     //std::cout << "PF::Errors: " << lin_error << ", " << ang_error << std::endl;
-    std::cout << "PF::Current Waypoint: " << currentWaypoint << std::endl;
+    //std::cout << "PF::Current Waypoint: " << currentWaypoint << std::endl;
 
     // Determine linear and angular velocity to issue
     lin_out = linPidController.controlStep( lin_error, now );
@@ -122,9 +87,28 @@ int PIDPathFollower::_compute_errors( double x, double y, double theta,
             lin_error = dst( x, y, target_x, target_y );
         }
     }else{
-        // Current waypoint not already reached, go toward it
-        target_theta = std::atan2( path.waypoints[currentWaypoint].y() - y,
-                               path.waypoints[currentWaypoint].x() - x );
+        //std::cout << "Is unreachable: " << _is_unreachable(path.waypoints[currentWaypoint], x, y, theta) << std::endl;
+        if( params.antiLoop && _is_unreachable(path.waypoints[currentWaypoint], x, y, theta) ){
+            std::cout << "Waypoint " << currentWaypoint << " skipped." << std::endl;
+            // Current waypoint not reachable, skip it
+            if( currentWaypoint == path.waypoints.size() -1 ){
+                // End of the path reached
+                lin_error = 0.0;
+                ang_error = 0.0;
+                return -1;
+            }else{
+                // Move to the next one
+                currentWaypoint++;
+                double target_x = path.waypoints[currentWaypoint].x();
+                double target_y = path.waypoints[currentWaypoint].y();
+                target_theta = std::atan2( target_y - y, target_x - x );
+                lin_error = dst( x, y, target_x, target_y );
+            }
+        }else{
+            // Current waypoint not already reached, go toward it
+            target_theta = std::atan2( path.waypoints[currentWaypoint].y() - y,
+                                       path.waypoints[currentWaypoint].x() - x );
+        }
     }
 
     // Ignore small angle errors
@@ -166,6 +150,29 @@ void PIDPathFollower::_limit_velocities( double& lin_vel, double& ang_vel )
 //    ang_vel = prevAngVel - maxAngAcc;
     prevLinVel = lin_vel;
     prevAngVel = ang_vel;
+}
+
+bool PIDPathFollower::_is_unreachable( const Point2D& waypoint, double x, double y, double theta ) const{
+    // Tells if a waypoint is unreachable given the current position and the
+    // cinematic constraints
+    Point2D v( std::cos(theta) * params.antiLoopRadius, std::sin(theta) * params.antiLoopRadius );
+    Point2D c1( x - v.y(), y + v.x() );
+    Point2D c2( x + v.y(), y - v.x() );
+    double d1 = dst( c1.x(), c1.y(), waypoint.x(), waypoint.y() );
+//    std::cout << "waypoint: (" << waypoint.x() << ", " << waypoint.y() << ")" << std::endl;
+//    std::cout << "antiLoopRadius: " << params.antiLoopRadius << std::endl;
+//    std::cout << "(x, y, theta): " << x << ", " << y << ", " << theta << std::endl;
+//    std::cout << "v: (" << v.x() << ", " << v.y() << ")" << std::endl;
+//    std::cout << "c1: (" << c1.x() << ", " << c1.y() << ")" << std::endl;
+//    std::cout << "c2: (" << c2.x() << ", " << c2.y() << ")" << std::endl;
+//    std::cout << "d1: " << d1 << std::endl;
+    if( d1 < params.antiLoopRadius ){
+        return true;
+    }else{
+        double d2 = dst( c2.x(), c2.y(), waypoint.x(), waypoint.y() );
+//        std::cout << "d2: " << d2 << std::endl;
+        return d2 < params.antiLoopRadius;
+    }
 }
 
 double PIDPathFollower::dst2( double x1, double y1, double x2, double y2 )

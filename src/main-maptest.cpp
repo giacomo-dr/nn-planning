@@ -9,7 +9,7 @@
 #include "lodepng.h"
 #include "reach_target_task.h"
 
-#define CUSTOM
+#define ELEVATION
 
 #ifdef CUSTOM
     #define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/custom9.png"
@@ -25,6 +25,14 @@
     #define MAP_HEIGHT 0.4
     #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_arc_rocks_full.dot"
     #define TG_SIZE 64
+#endif
+
+#ifdef ELEVATION
+    #define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/gridmap_elevation_2_c_r.png"
+    #define MAP_X_METERS 10.0
+    #define MAP_HEIGHT 1.0
+    #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_gridmap_elevation_2_c_full.dot"
+    #define TG_SIZE 57
 #endif
 
 void saveImage(const char *filename, std::vector<unsigned char> &image, unsigned width, unsigned height)
@@ -64,8 +72,8 @@ void generateProbabilityMap( TraversabilityGraph& tg, double angle, std::string 
 
     for( unsigned y = 0 ; y < img_height ; y++ )
         for( unsigned x = 0 ; x < img_width ; x++ ){
-            double xd = (x / 640.0) * 63.0;
-            double yd = (y / 640.0) * 63.0;
+            double xd = (x / 640.0) * (tg.ncolumns() - 1);
+            double yd = (y / 640.0) * (tg.nrows() - 1);
             unsigned char val = static_cast<unsigned char>( tg.getLinear( xd, yd, angle ) * 255 );
             image[4 * img_width * y + 4 * x + 0] = val;
             image[4 * img_width * y + 4 * x + 1] = val;
@@ -82,12 +90,12 @@ int main() {
     HeightMap map( MAP_FILENAME, MAP_X_METERS, MAP_HEIGHT );
     map.load_traversability_graph( TG_FILENAME, TG_SIZE, TG_SIZE );
 
-    generateThresholdMap( map, 0.8, Point2D(0.1, 0.0), "tgraphs/tgraph_tv_right.png" );
-    generateThresholdMap( map, 0.8, Point2D(-0.1, 0.0), "tgraphs/tgraph_tv_left.png" );
-    generateThresholdMap( map, 0.8, Point2D(0.0, 0.1), "tgraphs/tgraph_tv_up.png" );
-    generateThresholdMap( map, 0.8, Point2D(0.0, -0.1), "tgraphs/tgraph_tv_down.png" );
+    generateThresholdMap( map, 0.4, Point2D(0.1, 0.0), "tgraphs/tgraph_tv_right.png" );
+    generateThresholdMap( map, 0.4, Point2D(-0.1, 0.0), "tgraphs/tgraph_tv_left.png" );
+    generateThresholdMap( map, 0.4, Point2D(0.0, 0.1), "tgraphs/tgraph_tv_up.png" );
+    generateThresholdMap( map, 0.4, Point2D(0.0, -0.1), "tgraphs/tgraph_tv_down.png" );
 
-    generateProbabilityMap( tg, 0.0, "tgraphs/tgraph_0.png" );
+    generateProbabilityMap( tg, M_PI_2, "tgraphs/tgraph_0.png" );
 
 //    std::cout << tg.get( 1, 1, 0 ) << std::endl;
 //    std::cout << tg.get( 1, 1, 1 ) << std::endl;

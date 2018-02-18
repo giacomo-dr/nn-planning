@@ -129,7 +129,7 @@ long RRTPlanner::expand_to_target(){
 }
 
 void RRTPlanner::expand_to_point( Point2D to ){
-    std::cout << "Expand to (" << to.x() << ", " << to.y() << ")\n";
+//  std::cout << "Expand to (" << to.x() << ", " << to.y() << ")\n";
     // Find nearest n nodes to expansion point
     std::vector<RTreeValue> nearest_k;
     std::copy( nodes_index.qbegin(bgi::nearest(to, PP_NEIGHBORS_EXPAND)),
@@ -137,27 +137,27 @@ void RRTPlanner::expand_to_point( Point2D to ){
                std::back_inserter(nearest_k) );
 
     for( const RTreeValue& p: nearest_k ){
-        std::cout << "  Considering (" << p.first.x() << ", " << p.first.y() << ")\n";
-        std::cout << "    Delta vector (" << (to - p.first).x() << ", " << (to - p.first).y() << ")\n";
+//        std::cout << "  Considering (" << p.first.x() << ", " << p.first.y() << ")\n";
+//        std::cout << "    Delta vector (" << (to - p.first).x() << ", " << (to - p.first).y() << ")\n";
         if( abs_angle( p, to ) < max_segment_angle && !has_similar_sibling( rrt.nodes[p.second], to ) ){
             Point2D step = compute_step( p.first, to );
-            std::cout << "    Step (" << step.x() << ", " << step.y() << ")\n";
+//            std::cout << "    Step (" << step.x() << ", " << step.y() << ")\n";
             // Test for traversability
             double step_prob = std::log( step_probability( p.first, to ) );
-            std::cout << "    Step probability: " << step_prob << " >? " << traversability_threshold << "\n";
+//            std::cout << "    Step probability: " << step_prob << " >? " << traversability_threshold << "\n";
             if( in_bounds( step ) && step_prob > traversability_threshold ){
                 double branch_prob = rrt.nodes[p.second].probability;
-                std::cout << "    Branch probability: " << std::exp(branch_prob) << "\n";
+//                std::cout << "    Branch probability: " << std::exp(branch_prob) << "\n";
                 long idx = rrt.add_node( RRTNode( step, p.second, step_prob + branch_prob ) );
                 nodes_index.insert( std::make_pair(step, idx) );
-                std::cout << "    Expanded!\n";
+//                std::cout << "    Expanded!\n";
                 return; // Tree expanded
             }
         }
     }
 
     // Tree not expanded, just return
-    std::cout << "    Not expanded!\n";
+//    std::cout << "    Not expanded!\n";
 }
 
 void RRTPlanner::build_shortest_path( long final_node_idx ){
