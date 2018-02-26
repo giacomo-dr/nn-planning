@@ -6,7 +6,7 @@
 #define SVG_UTILS_H
 
 #import "svg_writer.h"
-#import "path_planner.h"
+#import "rrt_star_planner.h"
 #import "height_map.h"
 
 namespace svg { namespace utils {
@@ -18,7 +18,7 @@ void initialize_svg_writer( SVGWriter& svg, const HeightMap &map );
 
 void write_height_map( SVGWriter& svg, const HeightMap &map );
 
-void write_rrt_plan( SVGWriter& svg, const RRTPlan &plan );
+void write_rrt_star_plan( SVGWriter& svg, const RRTStarPlan &plan );
 
 void write_path( SVGWriter& svg, const WaypointPath2D& path );
 
