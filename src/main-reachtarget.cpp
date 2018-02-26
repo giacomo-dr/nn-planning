@@ -55,12 +55,12 @@
 #define MAP_OUTPUT_FILENAME "map_rocks.svg"
 #define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/arc_rocks.png"
 #define MAP_X_METERS 10.0
-#define MAP_HEIGHT 0.4
+#define MAP_HEIGHT 1
 #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_arc_rocks_full.dot"
 #define TG_SIZE 64
 #define START_POS_X 4
 #define START_POS_Y -4
-#define START_POS_Z 0.2
+#define START_POS_Z 0.4
 #define START_YAW M_PI
 #define TARGET_POS_X 3
 #define TARGET_POS_Y 4.5
@@ -124,7 +124,7 @@
 #endif
 
 #ifdef HEIGHTMAP
-#define MAP_OUTPUT_FILENAME "map.svg"
+#define MAP_OUTPUT_FILENAME "map_heightmap.svg"
 #define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/heightmap1.png"
 #define MAP_X_METERS 10.0
 #define MAP_HEIGHT 0.4
@@ -160,7 +160,7 @@
 #endif
 
 #ifdef QUARRY
-#define MAP_OUTPUT_FILENAME "quarry_map.svg"
+#define MAP_OUTPUT_FILENAME "map_quarry.svg"
 #define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/quarry_cropped4_scaled2cm.png"
 #define MAP_X_METERS 30.0
 #define MAP_HEIGHT 8
@@ -179,8 +179,8 @@
 #define RRT_MAX_ITERATIONS 60000
 #define RRT_MAX_SEGMENT_ANGLE (M_PI / 6.0)
 #define RRT_TRAVERSABILITY_THRESHOLD 0.9
-#define PF_PID_LIN_PROPORTIONAL_GAIN 4
-#define PF_PID_LIN_INTEGRAL_GAIN 2
+#define PF_PID_LIN_PROPORTIONAL_GAIN 6
+#define PF_PID_LIN_INTEGRAL_GAIN 4
 #define PF_PID_LIN_DERIVATIVE_GAIN 0
 #define PF_PID_ANG_PROPORTIONAL_GAIN 0.8
 #define PF_PID_ANG_INTEGRAL_GAIN 0
