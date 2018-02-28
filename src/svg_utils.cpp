@@ -30,12 +30,23 @@ void write_height_map( SVGWriter& svg, const HeightMap& map ){
                      "image/png", map.encode_base64(".png") );
 }
 
-void write_rrt_plan( SVGWriter& svg, const RRTPlan& plan ){
+void write_rrt_plan( SVGWriter& svg, const RRTPlanner& planner ){
     // Find the node with min value of probability
+    const RRTPlan& plan = planner.get_plan();
     auto min_res = std::min_element( plan.nodes.begin(), plan.nodes.end(),
                                      [](const RRTNode& a, const RRTNode& b) { return a.probability < b.probability; } );
     double min_prob = (*min_res).probability * 1.25;
     double norm_factor = -1.0 / min_prob;
+
+    // Print start/end point
+    svg.set_style_property( "fill", "rgba(255,255,0,1)" );
+    svg.set_style_property( "stroke", "rgba(255,255,0,1)" );
+    svg.set_style_property( "stroke-width", "0.3" );
+    svg.write_circle( planner.get_start_point().x() * scale_factor,
+                      planner.get_start_point().y() * scale_factor, 0.6 );
+    svg.set_style_property( "fill", "rgba(0,0,0,1)" );
+    svg.write_circle( planner.get_target_point().x() * scale_factor,
+                      planner.get_target_point().y() * scale_factor, 0.8 );
 
     // Print nodes and edges
     for( const RRTNode& p: plan.nodes ){
@@ -87,8 +98,6 @@ void write_rrt_star_plan( SVGWriter& svg, const RRTStarPlanner& planner ){
         svg.set_style_property( "stroke", rgba );
         svg.set_style_property( "stroke-width", "0" );
 
-//        svg.write_circle( p.vertex.x() * scale_factor,
-//                          p.vertex.y() * scale_factor, 0.3 );
         if( p.parent != -1 ) {
             svg.set_style_property( "stroke-width", "0.1" );
             svg.write_segment(p.vertex.x() * scale_factor,

@@ -19,7 +19,7 @@ void initialize_svg_writer( SVGWriter& svg, const HeightMap &map );
 
 void write_height_map( SVGWriter& svg, const HeightMap &map );
 
-void write_rrt_plan( SVGWriter& svg, const RRTPlan &plan );
+void write_rrt_plan( SVGWriter& svg, const RRTPlanner &plan );
 void write_rrt_star_plan( SVGWriter& svg, const RRTStarPlanner &plan );
 
 void write_path( SVGWriter& svg, const WaypointPath2D& path );

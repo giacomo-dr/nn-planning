@@ -191,6 +191,16 @@
 #endif
 
 
+void write_svg_of_map_and_plan( const HeightMap& map, const RRTPlanner& planner ){
+    svg::SVGWriter svg_out( MAP_OUTPUT_FILENAME );
+    svg::utils::initialize_svg_writer( svg_out, map );
+    svg_out.begin();
+    svg::utils::write_height_map( svg_out, map );
+    svg::utils::write_rrt_plan( svg_out, planner );
+    svg::utils::write_path( svg_out, planner.get_path() );
+    svg_out.end();
+}
+
 void write_svg_of_map_and_plan( const HeightMap& map, const RRTStarPlanner& planner ){
     svg::SVGWriter svg_out( MAP_OUTPUT_FILENAME );
     svg::utils::initialize_svg_writer( svg_out, map );
@@ -216,7 +226,7 @@ int main( int argc, char *argv[] ) {
     std::cout << "ok\n";
 
     std::cout << "Build plan...\n";
-    RRTStarPlanner planner( &map, RRT_GROWTH_FACTOR, RRT_GREEDYNESS,
+    RRTPlanner planner( &map, RRT_GROWTH_FACTOR, RRT_GREEDYNESS,
                             RRT_MAX_ITERATIONS, RRT_MAX_SEGMENT_ANGLE,
                             RRT_TRAVERSABILITY_THRESHOLD );
     planner.build_plan( start_position_2d, start_yaw, target_position_2d, target_yaw );

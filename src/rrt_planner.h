@@ -45,6 +45,8 @@ public:
     void set_map( HeightMap* map );
     const RRTPlan& get_plan() const;
     const WaypointPath2D& get_path() const;
+    Point2D get_start_point() const;
+    Point2D get_target_point() const;
     int build_plan( Point2D start, double start_yaw,
                     Point2D target, double target_yaw );
     bool is_traversable( const Point2D& p1, const Point2D& p2 ) const;

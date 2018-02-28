@@ -67,6 +67,14 @@ const WaypointPath2D& RRTPlanner::get_path() const {
     return shortest_path;
 }
 
+Point2D RRTPlanner::get_start_point() const{
+    return start_point;
+}
+
+Point2D RRTPlanner::get_target_point() const{
+    return target_point;
+}
+
 int RRTPlanner::build_plan( Point2D start, double start_yaw,
                             Point2D target, double target_yaw ){
     reset();
