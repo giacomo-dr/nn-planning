@@ -7,7 +7,7 @@
 #include "svg_utils.h"
 
 
-#define CUSTOM
+#define QUARRY
 
 #ifdef CUSTOM
 #define MAP_OUTPUT_FILENAME "plan_custom.svg"
@@ -25,7 +25,7 @@
 #define TARGET_YAW (2.0 * M_PI_2)
 #define RRT_GROWTH_FACTOR 0.3
 #define RRT_GREEDYNESS 10
-#define RRT_MAX_ITERATIONS 5000
+#define RRT_MAX_ITERATIONS 12000
 #define RRT_MAX_SEGMENT_ANGLE (M_PI / 6.0)
 #define RRT_TRAVERSABILITY_THRESHOLD 0.9
 #define PF_PID_LIN_PROPORTIONAL_GAIN 2.5
@@ -61,7 +61,7 @@
 #define TARGET_YAW 0
 #define RRT_GROWTH_FACTOR 0.3
 #define RRT_GREEDYNESS 10
-#define RRT_MAX_ITERATIONS 5000
+#define RRT_MAX_ITERATIONS 14000
 #define RRT_MAX_SEGMENT_ANGLE (M_PI / 6.0)
 #define RRT_TRAVERSABILITY_THRESHOLD 0.95
 #define PF_PID_LIN_PROPORTIONAL_GAIN 4.0
@@ -196,7 +196,7 @@ void write_svg_of_map_and_plan( const HeightMap& map, const RRTStarPlanner& plan
     svg::utils::initialize_svg_writer( svg_out, map );
     svg_out.begin();
     svg::utils::write_height_map( svg_out, map );
-    svg::utils::write_rrt_star_plan( svg_out, planner.get_plan() );
+    svg::utils::write_rrt_star_plan( svg_out, planner );
     svg::utils::write_path( svg_out, planner.get_path() );
     svg_out.end();
 }

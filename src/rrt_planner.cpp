@@ -1,11 +1,11 @@
-// path_planner.cpp
+// rrt_planner.cpp
 // Author: Giacomo Del Rio
 // Date: 17 Apr 2017
 
 
 #include <stdexcept>
 #include <cmath>
-#include "path_planner.h"
+#include "rrt_planner.h"
 
 #define PP_DEFAULT_GROWTH_FACTOR 1
 #define PP_DEFAULT_GREEDYNESS 10
@@ -22,7 +22,7 @@ long RRTPlan::add_node( RRTNode n ){
 }
 
 RRTPlanner::RRTPlanner(){
-    this->map = NULL;
+    this->map = nullptr;
     this->growth_factor = PP_DEFAULT_GROWTH_FACTOR;
     this->greediness = PP_DEFAULT_GREEDYNESS;
     this->max_iterations = PP_DEFAULT_MAX_ITERATIONS;
@@ -102,26 +102,23 @@ void RRTPlanner::reset(){
 
 long RRTPlanner::expand_to_target(){
     // Find nearest n nodes to target
-    std::vector<RTreeValue> nearest_k;
-    std::copy( nodes_index.qbegin(bgi::nearest(target_point, PP_NEIGHBORS_EXPAND * 5)),
-               nodes_index.qend(),
-               std::back_inserter(nearest_k) );
-    for( const RTreeValue& p: nearest_k )
-        if( (p.first - target_point).norm() <= growth_factor ){
+    for( auto p = nodes_index.qbegin( bgi::nearest(target_point, PP_NEIGHBORS_EXPAND) ); p != nodes_index.qend(); ++p ){
+        if ((p->first - target_point).norm() <= growth_factor ){
             // Try to connect directly to target
-            double step_prob = std::log( step_probability( p.first, target_point ) );
-            if( step_prob > traversability_threshold &&
-                abs_angle( p, target_point ) < max_segment_angle &&
-                std::fabs( angle_difference( get_yaw(target_point - p.first), target_yaw ) ) < max_segment_angle ){
-                double branch_prob = rrt.nodes[p.second].probability;
+            double step_prob = std::log( step_probability( p->first, target_point ));
+            if ( step_prob > traversability_threshold &&
+                 abs_angle( *p, target_point ) < max_segment_angle &&
+                 std::fabs( angle_difference( get_yaw( target_point - p->first ), target_yaw )) < max_segment_angle ){
+                double branch_prob = rrt.nodes[p->second].probability;
                 // Direct connection with target found!
-                long idx = rrt.add_node( RRTNode( target_point, p.second, step_prob + branch_prob ) );
-                nodes_index.insert( std::make_pair(target_point, idx) );
+                long idx = rrt.add_node( RRTNode( target_point, p->second, step_prob + branch_prob ));
+                nodes_index.insert( std::make_pair( target_point, idx ));
                 std::cout << "Target found and put in node " << idx << "\n";
-                std::cout << "Total path probability to target " << std::exp(step_prob + branch_prob) << "\n";
+                std::cout << "Total path probability to target " << std::exp( step_prob + branch_prob ) << "\n";
                 return idx;
             }
         }
+    }
 
     // No direct connection with target found, expand toward it
     expand_to_point( target_point );
@@ -131,24 +128,20 @@ long RRTPlanner::expand_to_target(){
 void RRTPlanner::expand_to_point( const Point2D& to ){
 //  std::cout << "Expand to (" << to.x() << ", " << to.y() << ")\n";
     // Find nearest n nodes to expansion point
-    std::vector<RTreeValue> nearest_k;
-    std::copy( nodes_index.qbegin(bgi::nearest(to, PP_NEIGHBORS_EXPAND)),
-               nodes_index.qend(),
-               std::back_inserter(nearest_k) );
 
-    for( const RTreeValue& p: nearest_k ){
+    for( auto p = nodes_index.qbegin( bgi::nearest(to, PP_NEIGHBORS_EXPAND) ); p != nodes_index.qend(); ++p ){
 //        std::cout << "  Considering (" << p.first.x() << ", " << p.first.y() << ")\n";
 //        std::cout << "    Delta vector (" << (to - p.first).x() << ", " << (to - p.first).y() << ")\n";
-        if( abs_angle( p, to ) < max_segment_angle && !has_similar_sibling( rrt.nodes[p.second], to ) ){
-            Point2D step = compute_step( p.first, to );
+        if( abs_angle( *p, to ) < max_segment_angle && !has_similar_sibling( rrt.nodes[p->second], to ) ){
+            Point2D step = compute_step( p->first, to );
 //            std::cout << "    Step (" << step.x() << ", " << step.y() << ")\n";
             // Test for traversability
-            double step_prob = std::log( step_probability( p.first, to ) );
+            double step_prob = std::log( step_probability( p->first, to ) );
 //            std::cout << "    Step probability: " << step_prob << " >? " << traversability_threshold << "\n";
             if( in_bounds( step ) && step_prob > traversability_threshold ){
-                double branch_prob = rrt.nodes[p.second].probability;
+                double branch_prob = rrt.nodes[p->second].probability;
 //                std::cout << "    Branch probability: " << std::exp(branch_prob) << "\n";
-                long idx = rrt.add_node( RRTNode( step, p.second, step_prob + branch_prob ) );
+                long idx = rrt.add_node( RRTNode( step, p->second, step_prob + branch_prob ) );
                 nodes_index.insert( std::make_pair(step, idx) );
 //                std::cout << "    Expanded!\n";
                 return; // Tree expanded

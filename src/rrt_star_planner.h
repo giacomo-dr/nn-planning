@@ -7,24 +7,23 @@
 
 #include <vector>
 #include <boost/geometry/index/rtree.hpp>
-#include <boost/geometry/geometries/register/point.hpp>
 #include "geometry.h"
 #include "height_map.h"
 
-BOOST_GEOMETRY_REGISTER_POINT_2D( Point2D, double, cs::cartesian, x(), y() )
 
 namespace bgi = boost::geometry::index;
-
+typedef boost::geometry::model::box<Point2D> Box;
 
 struct RRTStarNode {
     Point2D vertex;
     int parent;
     std::vector<int> children;
     double probability;
+    double cost;
 
-    RRTStarNode() : parent(-1), probability(0) {}
-    RRTStarNode( Point2D vertex, int parent, double probability ) :
-                 vertex(vertex), parent(parent), probability(probability) {}
+    RRTStarNode() : parent(-1), probability(0), cost(0) {}
+    RRTStarNode( Point2D vertex, int parent, double probability, double cost ) :
+                 vertex(vertex), parent(parent), probability(probability), cost(cost) {}
 };
 
 struct RRTStarPlan {
@@ -47,11 +46,13 @@ public:
     void set_map( HeightMap* map );
     const RRTStarPlan& get_plan() const;
     const WaypointPath2D& get_path() const;
+    Point2D get_start_point() const;
+    Point2D get_target_point() const;
     int build_plan( Point2D start, double start_yaw,
                     Point2D target, double target_yaw );
     bool is_traversable( const Point2D& p1, const Point2D& p2 ) const;
 
-protected:
+private:
     HeightMap* map;
     double growth_factor;
     unsigned int greediness;
@@ -67,7 +68,7 @@ protected:
     Point2D start_point, target_point;
     double start_yaw, target_yaw;
 
-protected:
+private:
     void reset();
     long expand_to_target();
     void expand_to_point( const Point2D& to );
@@ -80,6 +81,8 @@ protected:
     static double angle_between( const Point2D& from, const Point2D& to );
     static double angle_difference( double alpha_1, double alpha_2 );
     static double get_yaw( const Point2D& p );
+    static double distance( const Point2D& p1, const Point2D& p2 );
+    static double lin_combination( const double a, const double b, const double weight );
 };
 
 #endif //RRT_STAR_PLANNER_H

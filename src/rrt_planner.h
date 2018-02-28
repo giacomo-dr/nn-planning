@@ -1,17 +1,15 @@
-// path_planner.h
+// rrt_planner.h
 // Author: Giacomo Del Rio
 // Date: 17 Apr 2017
 
-#ifndef PATH_PLANNER_H
-#define PATH_PLANNER_H
+#ifndef RRT_PLANNER_H
+#define RRT_PLANNER_H
 
 #include <vector>
 #include <boost/geometry/index/rtree.hpp>
-#include <boost/geometry/geometries/register/point.hpp>
 #include "geometry.h"
 #include "height_map.h"
 
-BOOST_GEOMETRY_REGISTER_POINT_2D( Point2D, double, cs::cartesian, x(), y() )
 
 namespace bgi = boost::geometry::index;
 
@@ -82,4 +80,4 @@ private:
     static double get_yaw( const Point2D& p );
 };
 
-#endif //PATH_PLANNER_H
+#endif //RRT_PLANNER_H

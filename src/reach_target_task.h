@@ -9,7 +9,7 @@
 #include "robot_task.h"
 #include "manta_controller.h"
 #include "path_following_task.h"
-#include "path_planner.h"
+#include "rrt_planner.h"
 #include "svg_writer.h"
 
 
