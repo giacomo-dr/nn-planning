@@ -13,31 +13,24 @@ ReachTargetTask::ReachTargetTask( MantaController& manta, HeightMap& map,
     this->target_pos = target_pos;
     this->start_yaw = start_yaw;
     this->target_yaw = target_yaw;
-    this->rrt_growth_factor = 0.3;
-    this->rrt_greedyness = 10;
-    this->rrt_max_iterations = 5000;
-    this->rrt_max_segment_angle = M_PI / 6.0;
-    this->rrt_traversability_threshold = 0.9;
+    RRTPlanner::Parameters params = {
+            .growth_factor = 0.3,
+            .max_segment_angle = M_PI / 6.0,
+            .greediness = 10,
+            .max_iterations = 5000,
+            .traversability_threshold = 0.9,
+            .grow_to_target_neighbors = 10,
+            .grow_to_point_neighbors = 1
+    };
     rrt_planner.set_map( &(this->map) );
-    rrt_planner.set_parameters( rrt_growth_factor, rrt_greedyness,
-                                rrt_max_iterations, rrt_max_segment_angle,
-                                rrt_traversability_threshold );
+    rrt_planner.set_parameters( params );
 }
 
-void ReachTargetTask::setRRTParameters( double growth_factor, double greedyness,
-                                        double max_iterations, double max_segment_angle,
-                                        double traversability_threshold){
-    this->rrt_growth_factor = growth_factor;
-    this->rrt_greedyness = greedyness;
-    this->rrt_max_iterations = max_iterations;
-    this->rrt_max_segment_angle = max_segment_angle;
-    this->rrt_traversability_threshold = traversability_threshold;
-    rrt_planner.set_parameters( rrt_growth_factor, rrt_greedyness,
-                                rrt_max_iterations, rrt_max_segment_angle,
-                                rrt_traversability_threshold );
+void ReachTargetTask::setRRTParameters( const RRTPlanner::Parameters& params ){
+    rrt_planner.set_parameters( params );
 }
 
-void ReachTargetTask::setFollowerParameters( PIDPathFollower::Parameters params ){
+void ReachTargetTask::setFollowerParameters( const PIDPathFollower::Parameters& params ){
     follower_params = params;
 }
 

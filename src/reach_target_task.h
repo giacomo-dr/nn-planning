@@ -18,10 +18,8 @@ public:
     ReachTargetTask( MantaController& manta, HeightMap& map,
                      Point2D start_pos, double start_yaw,
                      Point2D target_pos, double target_yaw );
-    void setRRTParameters( double growth_factor, double greedyness,
-                           double max_iterations, double max_segment_angle,
-                           double traversability_threshold);
-    void setFollowerParameters( PIDPathFollower::Parameters params );
+    void setRRTParameters( const RRTPlanner::Parameters& params );
+    void setFollowerParameters( const PIDPathFollower::Parameters& params );
     CallResult initialize( int loop_delay_ms ) override;
     void finalize() override;
     CallResult controlStep( long time_now ) override;
@@ -37,12 +35,6 @@ private:
     HeightMap& map;
     Point2D start_pos, target_pos;
     double start_yaw, target_yaw;
-
-    double rrt_growth_factor;
-    double rrt_greedyness;
-    double rrt_max_iterations;
-    double rrt_max_segment_angle;
-    double rrt_traversability_threshold;
     PIDPathFollower::Parameters follower_params;
 };
 

@@ -35,37 +35,49 @@ struct RRTPlan {
 
 class RRTPlanner {
 public:
+    struct Parameters{
+        double growth_factor;               // Branch segment size
+        double max_segment_angle;           // Maximum angle between two adjacent segments
+        unsigned int greediness;            // Select target as growing point each greediness iteration
+        unsigned int max_iterations;        // Maximum number of growing attempt
+        double traversability_threshold;    // Allow a segment only if traversable with a prob greater than this
+        int grow_to_target_neighbors;       // Number of neighbors considered when growing to target
+        int grow_to_point_neighbors;        // Number of neighbors considered when growing to a point
+    };
+
+public:
     RRTPlanner();
-    RRTPlanner( HeightMap* map, double growth_factor,
-                unsigned int greediness, unsigned int max_iterations,
-                double max_segment_angle, double traversability_threshold );
-    void set_parameters( double growth_factor, unsigned int greediness,
-                         unsigned int max_iterations, double max_segment_angle,
-                         double traversability_threshold );
+    RRTPlanner( HeightMap* map, const Parameters& params );
+    void set_parameters( const Parameters& params );
+    const Parameters& get_parameters() const;
     void set_map( HeightMap* map );
     const RRTPlan& get_plan() const;
     const WaypointPath2D& get_path() const;
     Point2D get_start_point() const;
     Point2D get_target_point() const;
-    int build_plan( Point2D start, double start_yaw,
-                    Point2D target, double target_yaw );
+    int build_plan( const Point2D& start, double start_yaw,
+                    const Point2D& target, double target_yaw );
     bool is_traversable( const Point2D& p1, const Point2D& p2 ) const;
 
 private:
+    Parameters params = {            // Default vanilla parameters
+            .growth_factor = 1.0,
+            .max_segment_angle = M_PI_2,
+            .greediness = 10,
+            .max_iterations = 10000,
+            .traversability_threshold = 0.95,
+            .grow_to_target_neighbors = 10,
+            .grow_to_point_neighbors = 1
+    };
     HeightMap* map;
-    double growth_factor;
-    unsigned int greediness;
-    unsigned int max_iterations;
-    double max_segment_angle;
-    double traversability_threshold;
+    Point2D start_point, target_point;
+    double start_yaw, target_yaw;
+    double traversability_threshold_log;
 
     RRTPlan rrt;
     typedef std::pair<Point2D, int> RTreeValue;
     bgi::rtree< RTreeValue, bgi::rstar<16> > nodes_index;
     WaypointPath2D shortest_path;
-
-    Point2D start_point, target_point;
-    double start_yaw, target_yaw;
 
 private:
     void reset();

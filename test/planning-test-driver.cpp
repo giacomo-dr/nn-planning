@@ -29,6 +29,8 @@ struct PlanningSolver{
     unsigned int greedyness;
     unsigned int max_iterations;
     double traversability_threshold;
+    int grow_to_target_neighbors;
+    int grow_to_point_neighbors;
 };
 
 const string heightmaps_folder = "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/";
@@ -58,7 +60,8 @@ std::vector<PlanningProblem> problems{
             .target_position = Point2D( 3, 4.5 ),
             .target_yaw = 0,
             .growth_factor = 0.3,
-            .max_segment_angle = M_PI / 6.0},
+            .max_segment_angle = M_PI / 6.0
+        }
 };
 
 std::vector<PlanningSolver> solvers{
@@ -66,7 +69,10 @@ std::vector<PlanningSolver> solvers{
             .class_name = "RRTPlanner",
             .greedyness = 10,
             .max_iterations = 10000,
-            .traversability_threshold = 0.95}
+            .traversability_threshold = 0.95,
+            .grow_to_target_neighbors = 10,
+            .grow_to_point_neighbors = 1
+        }
 };
 
 
@@ -305,9 +311,16 @@ int main( int argc, char *argv[] ) {
         // For each solver
         for( PlanningSolver s: solvers ){
             std::cout << "\tSolving with '" << s.name << "'\n";
-            RRTPlanner planner( &map, p.growth_factor, s.greedyness,
-                                s.max_iterations, p.max_segment_angle,
-                                s.traversability_threshold );
+            RRTPlanner::Parameters params = {
+                    .growth_factor = p.growth_factor,
+                    .max_segment_angle = p.max_segment_angle,
+                    .greediness = s.greedyness,
+                    .max_iterations = s.max_iterations,
+                    .traversability_threshold = s.traversability_threshold,
+                    .grow_to_target_neighbors = s.grow_to_target_neighbors,
+                    .grow_to_point_neighbors = s.grow_to_point_neighbors
+            };
+            RRTPlanner planner( &map, params );
             int res = planner.build_plan( p.start_position, p.start_yaw,
                                           p.target_position, p.target_yaw );
             std::cout << (res == -1 ? "\t\tTarget not reached" : "Target reached") << std::endl;

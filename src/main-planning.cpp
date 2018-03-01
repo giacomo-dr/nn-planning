@@ -226,9 +226,16 @@ int main( int argc, char *argv[] ) {
     std::cout << "ok\n";
 
     std::cout << "Build plan...\n";
-    RRTPlanner planner( &map, RRT_GROWTH_FACTOR, RRT_GREEDYNESS,
-                            RRT_MAX_ITERATIONS, RRT_MAX_SEGMENT_ANGLE,
-                            RRT_TRAVERSABILITY_THRESHOLD );
+    RRTPlanner::Parameters params = {
+            .growth_factor = RRT_GROWTH_FACTOR,
+            .max_segment_angle = RRT_MAX_SEGMENT_ANGLE,
+            .greediness = RRT_GREEDYNESS,
+            .max_iterations = RRT_MAX_ITERATIONS,
+            .traversability_threshold = RRT_TRAVERSABILITY_THRESHOLD,
+            .grow_to_target_neighbors = 10,
+            .grow_to_point_neighbors = 1
+    };
+    RRTPlanner planner( &map, params );
     planner.build_plan( start_position_2d, start_yaw, target_position_2d, target_yaw );
     std::cout << "ok\n";
 
