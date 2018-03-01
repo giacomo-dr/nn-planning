@@ -56,11 +56,17 @@ set(VREP_SRCS "${VREP_BASE}/remoteApi/extApi.c" "${VREP_BASE}/remoteApi/extApiPl
 file(GLOB_RECURSE MANTA_SRCS "src/*.cpp")
 list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-pathfollowing.cpp")  # Compile only one main() at once
 list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-reachtarget.cpp")  # Compile only one main() at once
-#list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-planning.cpp")  # Compile only one main() at once
+list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-planning.cpp")  # Compile only one main() at once
 list(REMOVE_ITEM MANTA_SRCS "${CMAKE_SOURCE_DIR}/src/main-maptest.cpp")  # Compile only one main() at once
-add_executable(mantacontroller ${MANTA_SRCS} ${VREP_SRCS} ${antlr4cpp_src_files_nnplanning})
+add_executable(mantacontroller "${CMAKE_SOURCE_DIR}/src/main-planning.cpp" ${MANTA_SRCS} ${VREP_SRCS} ${antlr4cpp_src_files_nnplanning})
 add_dependencies(mantacontroller antlr4cpp antlr4cpp_generation_nnplanning)
 target_link_libraries(mantacontroller ${Boost_LIBRARIES} ${OpenCV_LIBS} antlr4-runtime)
+
+# --------------- Test ---------------
+include_directories("${CMAKE_SOURCE_DIR}/src")
+add_executable(testdrv "${CMAKE_SOURCE_DIR}/test/planning-test-driver.cpp" ${MANTA_SRCS} ${VREP_SRCS} ${antlr4cpp_src_files_nnplanning})
+add_dependencies(testdrv antlr4cpp antlr4cpp_generation_nnplanning)
+target_link_libraries(testdrv ${Boost_LIBRARIES} ${OpenCV_LIBS} antlr4-runtime)
 
 # The following command is needed to find antlr4 dll
 add_custom_command(TARGET mantacontroller POST_BUILD
@@ -69,4 +75,8 @@ add_custom_command(TARGET mantacontroller POST_BUILD
     COMMENT "Adjust path to libantlr4-runtime.4.7.dylib into mantacontroller executable"
 )
 
-
+add_custom_command(TARGET testdrv POST_BUILD
+    COMMAND install_name_tool -change libantlr4-runtime.4.7.dylib @executable_path/locals/antlr4cpp/lib/libantlr4-runtime.4.7.dylib testdrv
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Adjust path to libantlr4-runtime.4.7.dylib into test executable"
+)
