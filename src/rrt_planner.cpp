@@ -112,8 +112,8 @@ long RRTPlanner::expand_to_target(){
                 // Direct connection with target found!
                 long idx = rrt.add_node( RRTNode( target_point, p->second, step_prob + branch_prob ));
                 nodes_index.insert( std::make_pair( target_point, idx ));
-                std::cout << "Target found and put in node " << idx << "\n";
-                std::cout << "Total path probability to target " << std::exp( step_prob + branch_prob ) << "\n";
+                std::cout << "\t\tTarget found and put in node " << idx << "\n";
+                std::cout << "\t\tTotal path probability to target " << std::exp( step_prob + branch_prob ) << "\n";
                 return idx;
             }
         }

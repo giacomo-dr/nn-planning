@@ -6,6 +6,7 @@
 #define RRT_PLANNER_H
 
 #include <vector>
+#include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
 #include "geometry.h"
 #include "height_map.h"
