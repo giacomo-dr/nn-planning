@@ -42,7 +42,7 @@ public:
         unsigned int greediness;            // Select target as growing point each greediness iteration
         unsigned int max_iterations;        // Maximum number of growing attempt
         double traversability_threshold;    // Allow a segment only if traversable with a prob greater than this
-        double neighbors_factor;            // Adjust the size of the area when looking for neighbors
+        int grow_to_point_neighbors;        // Number of neighbors considered when growing to a point
     };
 
 public:
@@ -66,7 +66,7 @@ private:
             .greediness = 10,
             .max_iterations = 10000,
             .traversability_threshold = 0.95,
-            .neighbors_factor = 2.0
+            .grow_to_point_neighbors = 10
     };
     HeightMap* map;
     RRTStarPlan rrt;
@@ -84,7 +84,6 @@ private:
     void expand_to_point( const Point2D& to );
     void build_shortest_path( long final_node_idx );
     Point2D compute_step( const Point2D& p1, const Point2D& p2 ) const;
-    double neighbors_radius() const;
     double step_probability( const Point2D& p1, const Point2D& p2 ) const;
     bool has_similar_sibling( const RRTStarNode& n, const Point2D& to ) const;
     const RTreeStarValue& nearest( const Point2D& to ) const;

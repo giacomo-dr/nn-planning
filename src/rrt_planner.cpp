@@ -109,7 +109,7 @@ long RRTPlanner::expand_to_target(){
             double step_prob = std::log( step_probability( p->first, target_point ));
             if( step_prob > traversability_threshold_log &&
                 abs_angle( *p, target_point ) < params.max_segment_angle &&
-                std::fabs( angle_difference( get_yaw( target_point - p->first ), target_yaw )) < params.max_segment_angle ){
+                std::fabs( angle_difference( get_yaw( target_point - p->first ), target_yaw )) < params.max_segment_angle / 2.0 ){
                 double branch_prob = rrt.nodes[p->second].probability;
                 // Direct connection with target found!
                 long idx = rrt.add_node( RRTNode( target_point, p->second, step_prob + branch_prob ));

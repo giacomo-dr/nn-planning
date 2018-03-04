@@ -107,8 +107,8 @@ long RRTStarPlanner::expand_to_target(){
             double step_prob = std::log( step_probability( p->first, target_point ));
             //std::cout << "Candidate step to target: " << step_prob << "\n";
             if ( step_prob > traversability_threshold_log &&
-                 abs_angle( *p, target_point ) < params.max_segment_angle / 2.0 &&
-                 std::fabs( angle_difference( get_yaw( target_point - p->first ), target_yaw )) < params.max_segment_angle ){
+                 abs_angle( *p, target_point ) < params.max_segment_angle &&
+                 std::fabs( angle_difference( get_yaw( target_point - p->first ), target_yaw )) < params.max_segment_angle / 2.0){
                 double branch_prob = rrt.nodes[p->second].probability;
                 double branch_cost = rrt.nodes[p->second].cost;
                 // Direct connection with target found!
@@ -129,41 +129,28 @@ long RRTStarPlanner::expand_to_target(){
 }
 
 void RRTStarPlanner::expand_to_point( const Point2D& to ){
-    // Find the new point to be added to the tree
-    Point2D new_point = compute_step( nearest(to).first, to );
-    if( !in_bounds( new_point ) )
-        return;
-    // TODO Cercarne non solo il piu vicino ma tra 10 o 20
-
     // Consider all the nodes in the tree that lie within a box centered to 'new_point'
     // with size computed by neighbors_radius(). Among these nodes, select the one
     // with lower cost.
     double new_branch_cost = std::numeric_limits<double>::max();
     double new_branch_prob = -1;
-    double new_step_cost = -1;
     double new_step_prob = -1;
     int new_father_idx = -1;
-//  auto nn_query = bgi::satisfies( [&](RTreeStarValue const& v) {return (v->first - to).norm() < 2.0;} );
-//    double r = neighbors_radius();
-//    if( rrt.nodes.size() % 500 == 1)
-//        std::cout << "r: " << r << "\n";
-    double r = params.growth_factor * 1.1;
-    Box neighbors_box( new_point - Point2D(r, r), new_point + Point2D(r, r) );
-    for( auto p = nodes_index.qbegin( bgi::within(neighbors_box) ) ; p != nodes_index.qend() ; ++p ){
+    Point2D new_point;
+    for( auto p = nodes_index.qbegin( bgi::nearest(to, params.grow_to_point_neighbors) ); p != nodes_index.qend(); ++p ){
         // Test for validity
-        if( abs_angle( *p, new_point ) < params.max_segment_angle &&
-                !has_similar_sibling( rrt.nodes[p->second], new_point ) ){
+        if( abs_angle( *p, to ) < params.max_segment_angle && !has_similar_sibling( rrt.nodes[p->second], to ) ){
             // Test for traversability
-            double step_cost = (p->first - new_point).norm();
-            double step_prob = std::log( step_probability( p->first, new_point ) );
-            if( step_prob > traversability_threshold_log && step_cost <= params.growth_factor * 1.1 ){
+            Point2D step = compute_step( p->first, to );
+            double step_prob = std::log( step_probability( p->first, step ) );
+            if( in_bounds( step ) &&  step_prob > traversability_threshold_log ){
                 double branch_cost = rrt.nodes[p->second].cost;
                 if( branch_cost < new_branch_cost ){
                     new_branch_cost = branch_cost;
                     new_branch_prob = rrt.nodes[p->second].probability;
                     new_step_prob = step_prob;
-                    new_step_cost = step_cost;
                     new_father_idx = p->second;
+                    new_point = step;
                 }
             }
         }
@@ -173,29 +160,29 @@ void RRTStarPlanner::expand_to_point( const Point2D& to ){
         // Expand the tree linking the new node with the father with lower cost
         long new_idx = rrt.add_node( RRTStarNode( new_point, new_father_idx,
                                                   new_step_prob + new_branch_prob,
-                                                  new_step_cost + new_branch_cost ));
+                                                  params.growth_factor + new_branch_cost ));
         RTreeStarValue new_node = std::make_pair( new_point, new_idx );
         nodes_index.insert( new_node );
 
         // Reparenting nodes around the new node to enhance tree quality
-//        double r = neighbors_radius();
-//        double r = params.growth_factor * 2.1;
-//        Box neighbors_box( new_point - Point2D(r, r), new_point + Point2D(r, r) );
-//        for( auto p = nodes_index.qbegin( bgi::within(neighbors_box) ) ; p != nodes_index.qend() ; ++p ){
-//            if( abs_angle( new_node, p->first ) < params.max_segment_angle &&
-//                    !has_similar_sibling( rrt.nodes[new_idx], p->first ) ){
-//                // Test for reparentability (only leaves can be reparented)
-//                double step_prob = std::log( step_probability( new_point, p->first ) );
-//                double step_cost = (p->first - new_point).norm();
-//                double branch_cost = rrt.nodes[p->second].cost;
-//                if( step_prob > traversability_threshold_log && step_cost < params.growth_factor * 1.1 &&
-//                        branch_cost > step_cost + rrt.nodes[new_idx].cost && rrt.nodes[p->second].children.empty() ){
-//                    rrt.nodes[p->second].parent = (int)new_idx;
-//                    rrt.nodes[p->second].probability = step_prob + rrt.nodes[new_idx].probability ;
-//                    rrt.nodes[p->second].cost = step_cost + rrt.nodes[new_idx].cost;
-//                }
-//            }
-//        }
+        // TODO: Enhance to reparent also inner nodes
+        double r = params.growth_factor * 1.1;
+        Box neighbors_box( new_point - Point2D(r, r), new_point + Point2D(r, r) );
+        for( auto p = nodes_index.qbegin( bgi::within(neighbors_box) ) ; p != nodes_index.qend() ; ++p ){
+            if( abs_angle( new_node, p->first ) < params.max_segment_angle &&
+                    !has_similar_sibling( rrt.nodes[new_idx], p->first ) ){
+                // Test for reparentability (only leaves can be reparented)
+                double step_prob = std::log( step_probability( new_point, p->first ) );
+                double step_cost = (p->first - new_point).norm();
+                double branch_cost = rrt.nodes[p->second].cost;
+                if( step_prob > traversability_threshold_log && step_cost < params.growth_factor * 1.1 &&
+                        branch_cost > step_cost + rrt.nodes[new_idx].cost && rrt.nodes[p->second].children.empty() ){
+                    rrt.nodes[p->second].parent = (int)new_idx;
+                    rrt.nodes[p->second].probability = step_prob + rrt.nodes[new_idx].probability ;
+                    rrt.nodes[p->second].cost = step_cost + rrt.nodes[new_idx].cost;
+                }
+            }
+        }
     }
 }
 
@@ -215,10 +202,10 @@ Point2D RRTStarPlanner::compute_step( const Point2D& p1, const Point2D& p2 ) con
     return p1 + params.growth_factor * (p2-p1).normalized();
 }
 
-double RRTStarPlanner::neighbors_radius() const {
-    double n = rrt.nodes.size() + 2;
-    return params.neighbors_factor * sqrt(log(n) / n);
-}
+//double RRTStarPlanner::neighbors_radius() const {
+//    double n = rrt.nodes.size() + 2;
+//    return params.neighbors_factor * sqrt(log(n) / n);
+//}
 
 //double RRTStarPlanner::compute_neighbors_factor( double map_size_x, double map_size_y) const {
 //    double r = Point2D( map_size_x / 2.0, map_size_y / 2.0 ).norm();

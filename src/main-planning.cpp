@@ -232,8 +232,7 @@ int main( int argc, char *argv[] ) {
             .greediness = RRT_GREEDYNESS,
             .max_iterations = RRT_MAX_ITERATIONS,
             .traversability_threshold = RRT_TRAVERSABILITY_THRESHOLD,
-            .grow_to_target_neighbors = 10,
-            .grow_to_point_neighbors = 1
+            .grow_to_point_neighbors = 20
     };
     RRTPlanner planner( &map, params );
     planner.build_plan( start_position_2d, start_yaw, target_position_2d, target_yaw );

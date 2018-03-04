@@ -49,7 +49,8 @@ std::vector<PlanningProblem> problems{
                 .target_position = Point2D( -4, 4 ),
                 .target_yaw = 2.0 * M_PI_2,
                 .growth_factor = 0.3,
-                .max_segment_angle = M_PI / 6.0},
+                .max_segment_angle = M_PI / 6.0
+        },
         {.name = "Rocks",
                 .map_filename = "arc_rocks.png",
                 .tg_filename = "t_graph_cnn_arc_rocks_full.dot",
@@ -105,38 +106,20 @@ std::vector<PlanningProblem> problems{
 };
 
 std::vector<PlanningSolver> solvers{
-//        {.name = "RRT",
-//                .class_name = "RRTPlanner",
-//                .greedyness = 10,
-//                .max_iterations = 80000,
-//                .traversability_threshold = 0.9,
-//                .grow_to_point_neighbors = 1,
-//                .neighbors_factor = -1 // Unused
-//        },
         {.name = "RRT",
                 .class_name = "RRTPlanner",
                 .greedyness = 10,
                 .max_iterations = 80000,
                 .traversability_threshold = 0.9,
-                .grow_to_point_neighbors = 20,
-                .neighbors_factor = -1 // Unused
+                .grow_to_point_neighbors = 20
         },
-//        {.name = "RRTStar",
-//                .class_name = "RRTStarPlanner",
-//                .greedyness = 10,
-//                .max_iterations = 80000,
-//                .traversability_threshold = 0.9,
-//                .grow_to_point_neighbors = -1,    // Unused
-//                .neighbors_factor = 10
-//        },
-//        {.name = "RRTStar",
-//                .class_name = "RRTStarPlanner",
-//                .greedyness = 10,
-//                .max_iterations = 500000,
-//                .traversability_threshold = 0.9,
-//                .grow_to_point_neighbors = -1,    // Unused
-//                .neighbors_factor = 20
-//        }
+        {.name = "RRTStar",
+                .class_name = "RRTStarPlanner",
+                .greedyness = 10,
+                .max_iterations = 1200000,
+                .traversability_threshold = 0.9,
+                .grow_to_point_neighbors = 20
+        }
 };
 
 
@@ -166,8 +149,6 @@ string build_filename( const PlanningProblem &p, const PlanningSolver &s ){
     res << "k_tt" << s.traversability_threshold;
     if( s.grow_to_point_neighbors > -1 )
         res << "_ne" << s.grow_to_point_neighbors;
-    if( s.neighbors_factor > -1 )
-        res << "_nf" << s.neighbors_factor;
     res << ".svg";
     return res.str();
 }
@@ -206,7 +187,7 @@ int main( int argc, char *argv[] ) {
                         .greediness = s.greedyness,
                         .max_iterations = s.max_iterations,
                         .traversability_threshold = s.traversability_threshold,
-                        .neighbors_factor = s.neighbors_factor
+                        .grow_to_point_neighbors = s.grow_to_point_neighbors
                 };
                 RRTStarPlanner planner( &map, params );
                 int res = planner.build_plan( p.start_position, p.start_yaw,
@@ -218,7 +199,7 @@ int main( int argc, char *argv[] ) {
             }
         }
 
-        if( argc > 1 && string(argv[1]) == "-1" )
+        if( argc > 1 && string(argv[1]) == "--first" )
             return 0;
     }
 

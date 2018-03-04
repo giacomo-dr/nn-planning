@@ -2,7 +2,7 @@
 // Author: Giacomo Del Rio
 // Date: 14 Apr 2017
 
-// TODO Implements fixed point arithmetic for integral window
+// TODO Implement fixed point arithmetic for integral window
 
 #include "pid_controller.h"
 
