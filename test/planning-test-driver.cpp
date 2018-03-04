@@ -31,6 +31,7 @@ struct PlanningSolver{
     double traversability_threshold;
     int grow_to_target_neighbors;
     int grow_to_point_neighbors;
+    double neighbors_factor;
 };
 
 const string heightmaps_folder = "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/";
@@ -38,29 +39,29 @@ const string tgraph_folder = "/Users/delrig/Downloads/Thesis/traversability_grap
 
 std::vector<PlanningProblem> problems{
         {.name = "Custom",
-             .map_filename = "custom9.png",
-             .tg_filename = "t_graph_cnn_custom9_full.dot",
-             .map_x_meters = 10.0,
-             .map_height = 0.4,
-             .tg_size = 64,
-             .start_position = Point2D( 0, -4 ),
-             .start_yaw = 0,
-             .target_position = Point2D( -4, 4 ),
-             .target_yaw = 2.0 * M_PI_2,
-             .growth_factor = 0.3,
-             .max_segment_angle = M_PI / 6.0},
+                .map_filename = "custom9.png",
+                .tg_filename = "t_graph_cnn_custom9_full.dot",
+                .map_x_meters = 10.0,
+                .map_height = 0.4,
+                .tg_size = 64,
+                .start_position = Point2D( 0, -4 ),
+                .start_yaw = 0,
+                .target_position = Point2D( -4, 4 ),
+                .target_yaw = 2.0 * M_PI_2,
+                .growth_factor = 0.3,
+                .max_segment_angle = M_PI / 6.0},
         {.name = "Rocks",
-            .map_filename = "arc_rocks.png",
-            .tg_filename = "t_graph_cnn_arc_rocks_full.dot",
-            .map_x_meters = 10.0,
-            .map_height = 1,
-            .tg_size = 64,
-            .start_position = Point2D( 4, -4 ),
-            .start_yaw = M_PI,
-            .target_position = Point2D( 3, 4.5 ),
-            .target_yaw = 0,
-            .growth_factor = 0.3,
-            .max_segment_angle = M_PI / 6.0
+                .map_filename = "arc_rocks.png",
+                .tg_filename = "t_graph_cnn_arc_rocks_full.dot",
+                .map_x_meters = 10.0,
+                .map_height = 1,
+                .tg_size = 64,
+                .start_position = Point2D( 4, -4 ),
+                .start_yaw = M_PI,
+                .target_position = Point2D( 3, 4.5 ),
+                .target_yaw = 0,
+                .growth_factor = 0.3,
+                .max_segment_angle = M_PI / 6.0
         },
         {.name = "Elevation",
                 .map_filename = "gridmap_elevation_2_c_r.png",
@@ -104,14 +105,38 @@ std::vector<PlanningProblem> problems{
 };
 
 std::vector<PlanningSolver> solvers{
+//        {.name = "RRT",
+//                .class_name = "RRTPlanner",
+//                .greedyness = 10,
+//                .max_iterations = 80000,
+//                .traversability_threshold = 0.9,
+//                .grow_to_point_neighbors = 1,
+//                .neighbors_factor = -1 // Unused
+//        },
         {.name = "RRT",
-            .class_name = "RRTPlanner",
-            .greedyness = 10,
-            .max_iterations = 20000,
-            .traversability_threshold = 0.9,
-            .grow_to_target_neighbors = 10,
-            .grow_to_point_neighbors = 1
-        }
+                .class_name = "RRTPlanner",
+                .greedyness = 10,
+                .max_iterations = 80000,
+                .traversability_threshold = 0.9,
+                .grow_to_point_neighbors = 20,
+                .neighbors_factor = -1 // Unused
+        },
+//        {.name = "RRTStar",
+//                .class_name = "RRTStarPlanner",
+//                .greedyness = 10,
+//                .max_iterations = 80000,
+//                .traversability_threshold = 0.9,
+//                .grow_to_point_neighbors = -1,    // Unused
+//                .neighbors_factor = 10
+//        },
+//        {.name = "RRTStar",
+//                .class_name = "RRTStarPlanner",
+//                .greedyness = 10,
+//                .max_iterations = 500000,
+//                .traversability_threshold = 0.9,
+//                .grow_to_point_neighbors = -1,    // Unused
+//                .neighbors_factor = 20
+//        }
 };
 
 
@@ -135,6 +160,18 @@ void write_svg_of_map_and_plan( string filename, const HeightMap& map, const RRT
     svg_out.end();
 }
 
+string build_filename( const PlanningProblem &p, const PlanningSolver &s ){
+    std::ostringstream res;
+    res << p.name << "-" << s.name << "_" << (s.max_iterations / 1000);
+    res << "k_tt" << s.traversability_threshold;
+    if( s.grow_to_point_neighbors > -1 )
+        res << "_ne" << s.grow_to_point_neighbors;
+    if( s.neighbors_factor > -1 )
+        res << "_nf" << s.neighbors_factor;
+    res << ".svg";
+    return res.str();
+}
+
 int main( int argc, char *argv[] ) {
 
     // For each problem
@@ -153,20 +190,37 @@ int main( int argc, char *argv[] ) {
                         .greediness = s.greedyness,
                         .max_iterations = s.max_iterations,
                         .traversability_threshold = s.traversability_threshold,
-                        .grow_to_target_neighbors = s.grow_to_target_neighbors,
                         .grow_to_point_neighbors = s.grow_to_point_neighbors
                 };
                 RRTPlanner planner( &map, params );
                 int res = planner.build_plan( p.start_position, p.start_yaw,
                                               p.target_position, p.target_yaw );
                 std::cout << (res == -1 ? "\t\tTarget not reached" : "\t\tTarget reached") << std::endl;
-                string out_file = p.name + "-" + s.name + ".svg";
+                string out_file = build_filename( p, s );
                 std::cout << "\t\tResult saved in " << out_file << std::endl;
                 write_svg_of_map_and_plan( out_file, map, planner );
             }else if( s.class_name == "RRTStarPlanner" ){
-                std::cout << "Not implemented." << std::endl;
+                RRTStarPlanner::Parameters params = {
+                        .growth_factor = p.growth_factor,
+                        .max_segment_angle = p.max_segment_angle,
+                        .greediness = s.greedyness,
+                        .max_iterations = s.max_iterations,
+                        .traversability_threshold = s.traversability_threshold,
+                        .neighbors_factor = s.neighbors_factor
+                };
+                RRTStarPlanner planner( &map, params );
+                int res = planner.build_plan( p.start_position, p.start_yaw,
+                                              p.target_position, p.target_yaw );
+                std::cout << (res == -1 ? "\t\tTarget not reached" : "\t\tTarget reached") << std::endl;
+                string out_file = build_filename( p, s );
+                std::cout << "\t\tResult saved in " << out_file << std::endl;
+                write_svg_of_map_and_plan( out_file, map, planner );
             }
         }
+
+        if( argc > 1 && string(argv[1]) == "-1" )
+            return 0;
     }
+
     return 0;
 }

@@ -52,7 +52,7 @@ void write_rrt_plan( SVGWriter& svg, const RRTPlanner& planner ){
     for( const RRTNode& p: plan.nodes ){
         double intensity = (p.probability - min_prob) * norm_factor;
         std::ostringstream rgba_str;
-        rgba_str << "rgba(255,0,0," << intensity << ")";
+        rgba_str << "rgba(255,164,32," << intensity << ")";
         const char* rgba = rgba_str.str().c_str();
         svg.set_style_property( "fill", rgba );
         svg.set_style_property( "stroke", rgba );

@@ -42,7 +42,6 @@ public:
         unsigned int greediness;            // Select target as growing point each greediness iteration
         unsigned int max_iterations;        // Maximum number of growing attempt
         double traversability_threshold;    // Allow a segment only if traversable with a prob greater than this
-        int grow_to_target_neighbors;       // Number of neighbors considered when growing to target
         int grow_to_point_neighbors;        // Number of neighbors considered when growing to a point
     };
 
@@ -67,7 +66,6 @@ private:
             .greediness = 10,
             .max_iterations = 10000,
             .traversability_threshold = 0.95,
-            .grow_to_target_neighbors = 10,
             .grow_to_point_neighbors = 1
     };
     HeightMap* map;

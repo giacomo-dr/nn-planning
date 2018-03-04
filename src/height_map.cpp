@@ -79,6 +79,10 @@ Point2D HeightMap::sample_Cfree( MapOrigin o ){
         return Point2D( uniform_x(rng), uniform_y(rng) );
 }
 
+void HeightMap::seed_Cfree_sampler(){
+    rng.seed();
+}
+
 double HeightMap::traversability_prob( MapOrigin o, double pos_x, double pos_y, double yaw ) {
     assert(0 <= yaw && yaw < M_PI * 2.0);
 

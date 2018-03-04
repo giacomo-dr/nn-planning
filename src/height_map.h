@@ -35,6 +35,7 @@ public:
                            double width, double height,
                            double angle, MapOrigin o );
     Point2D sample_Cfree( MapOrigin o );
+    void seed_Cfree_sampler();
     double traversability_prob( MapOrigin o, double pos_x, double pos_y, double yaw );
 
 private:

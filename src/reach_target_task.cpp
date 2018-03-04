@@ -19,7 +19,6 @@ ReachTargetTask::ReachTargetTask( MantaController& manta, HeightMap& map,
             .greediness = 10,
             .max_iterations = 5000,
             .traversability_threshold = 0.9,
-            .grow_to_target_neighbors = 10,
             .grow_to_point_neighbors = 1
     };
     rrt_planner.set_map( &(this->map) );

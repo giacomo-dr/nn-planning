@@ -7,10 +7,8 @@
 #include <cmath>
 #include "rrt_planner.h"
 
-#define PP_DEFAULT_GROWTH_FACTOR 1
-#define PP_DEFAULT_GREEDYNESS 10
-#define PP_DEFAULT_MAX_ITERATIONS 2000
-#define PP_NEIGHBORS_EXPAND 30
+
+typedef boost::geometry::model::box<Point2D> Box;
 
 
 long RRTPlan::add_node( RRTNode n ){
@@ -69,6 +67,7 @@ Point2D RRTPlanner::get_target_point() const{
 int RRTPlanner::build_plan( const Point2D& start, double start_yaw,
                             const Point2D& target, double target_yaw ){
     reset();
+    map->seed_Cfree_sampler();
     this->start_point = start;   this->target_point = target;
     this->start_yaw = start_yaw; this->target_yaw = target_yaw;
 
@@ -100,14 +99,17 @@ void RRTPlanner::reset(){
 }
 
 long RRTPlanner::expand_to_target(){
-    // Find nearest n nodes to target
-    for( auto p = nodes_index.qbegin( bgi::nearest(target_point, PP_NEIGHBORS_EXPAND) ); p != nodes_index.qend(); ++p ){
-        if ((p->first - target_point).norm() <= params.growth_factor ){
+    // Consider all the nodes in the tree that lie within a box centered to 'target_point'
+    // with size proportional to growth_factor
+    double r = params.growth_factor * 1.01;
+    Box neighbors_box( target_point - Point2D(r, r), target_point + Point2D(r, r) );
+    for( auto p = nodes_index.qbegin( bgi::within(neighbors_box) ) ; p != nodes_index.qend() ; ++p ){
+        if( (p->first - target_point).norm() <= params.growth_factor ){
             // Try to connect directly to target
             double step_prob = std::log( step_probability( p->first, target_point ));
-            if ( step_prob > traversability_threshold_log &&
-                 abs_angle( *p, target_point ) < params.max_segment_angle &&
-                 std::fabs( angle_difference( get_yaw( target_point - p->first ), target_yaw )) < params.max_segment_angle ){
+            if( step_prob > traversability_threshold_log &&
+                abs_angle( *p, target_point ) < params.max_segment_angle &&
+                std::fabs( angle_difference( get_yaw( target_point - p->first ), target_yaw )) < params.max_segment_angle ){
                 double branch_prob = rrt.nodes[p->second].probability;
                 // Direct connection with target found!
                 long idx = rrt.add_node( RRTNode( target_point, p->second, step_prob + branch_prob ));
@@ -128,7 +130,7 @@ void RRTPlanner::expand_to_point( const Point2D& to ){
 //  std::cout << "Expand to (" << to.x() << ", " << to.y() << ")\n";
     // Find nearest n nodes to expansion point
 
-    for( auto p = nodes_index.qbegin( bgi::nearest(to, PP_NEIGHBORS_EXPAND) ); p != nodes_index.qend(); ++p ){
+    for( auto p = nodes_index.qbegin( bgi::nearest(to, params.grow_to_point_neighbors) ); p != nodes_index.qend(); ++p ){
 //        std::cout << "  Considering (" << p.first.x() << ", " << p.first.y() << ")\n";
 //        std::cout << "    Delta vector (" << (to - p.first).x() << ", " << (to - p.first).y() << ")\n";
         if( abs_angle( *p, to ) < params.max_segment_angle && !has_similar_sibling( rrt.nodes[p->second], to ) ){
