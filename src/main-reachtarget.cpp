@@ -22,6 +22,7 @@
 #define MAP_HEIGHT 0.4
 #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_custom9_full.dot"
 #define TG_SIZE 64
+#define TG_PADDING 0.3
 #define START_POS_X 0
 #define START_POS_Y -4
 #define START_POS_Z 0.2
@@ -58,6 +59,7 @@
 #define MAP_HEIGHT 1
 #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_arc_rocks_full.dot"
 #define TG_SIZE 64
+#define TG_PADDING 0.3
 #define START_POS_X 4
 #define START_POS_Y -4
 #define START_POS_Z 0.4
@@ -94,6 +96,7 @@
 #define MAP_HEIGHT 1
 #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_gridmap_elevation_2_c_r.dot"
 #define TG_SIZE 59
+#define TG_PADDING 0.3
 #define START_POS_X 0
 #define START_POS_Y -1
 #define START_POS_Z 0.2
@@ -130,6 +133,7 @@
 #define MAP_HEIGHT 0.4
 #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_heightmap1_full.dot"
 #define TG_SIZE 64
+#define TG_PADDING 0.3
 #define START_POS_X -4
 #define START_POS_Y -4
 #define START_POS_Z 0.2
@@ -166,6 +170,7 @@
 #define MAP_HEIGHT 8
 #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_quarry_stride_14.dot"
 #define TG_SIZE 110
+#define TG_PADDING 0.3
 #define DO_NOT_LOAD_MAP
 #define START_POS_X 7
 #define START_POS_Y -1.0
@@ -208,7 +213,7 @@ void write_svg_of_map_and_plan( const HeightMap& map, const ReachTargetTask* tas
     svg::utils::initialize_svg_writer( svg_out, map );
     svg_out.begin();
     svg::utils::write_height_map( svg_out, map );
-    svg::utils::write_rrt_plan( svg_out, task->get_plan() );
+    svg::utils::write_rrt_plan( svg_out, task->get_planner() );
     svg::utils::write_path( svg_out, task->get_path() );
     svg_out.end();
 }
@@ -221,7 +226,7 @@ int main( int argc, char *argv[] ) {
 
     // Simulation parameters
     HeightMap map( MAP_FILENAME, MAP_X_METERS, MAP_HEIGHT );
-    map.load_traversability_graph( TG_FILENAME, TG_SIZE, TG_SIZE );
+    map.load_traversability_graph( TG_FILENAME, TG_SIZE, TG_SIZE, TG_PADDING, TG_PADDING );
     Point3D start_position( START_POS_X, START_POS_Y, START_POS_Z );
     Point3D start_orientation( 0, 0, START_YAW );
     Point2D start_position_2d( start_position.x(), start_position.y() );
@@ -244,9 +249,15 @@ int main( int argc, char *argv[] ) {
         ReachTargetTask* task = new ReachTargetTask(
                 manta, map, start_position_2d, start_yaw,
                 target_position_2d, target_yaw );
-        task->setRRTParameters( RRT_GROWTH_FACTOR, RRT_GREEDYNESS,
-                                RRT_MAX_ITERATIONS, RRT_MAX_SEGMENT_ANGLE,
-                                RRT_TRAVERSABILITY_THRESHOLD );
+        RRTPlanner::Parameters params = {
+                .growth_factor = RRT_GROWTH_FACTOR,
+                .max_segment_angle = RRT_MAX_SEGMENT_ANGLE,
+                .greediness = RRT_GREEDYNESS,
+                .max_iterations = RRT_MAX_ITERATIONS,
+                .traversability_threshold = RRT_TRAVERSABILITY_THRESHOLD,
+                .grow_to_point_neighbors = 20
+        };
+        task->setRRTParameters( params );
         task->setFollowerParameters( PIDPathFollower::Parameters{
                 PF_PID_LIN_PROPORTIONAL_GAIN, PF_PID_LIN_INTEGRAL_GAIN,
                 PF_PID_LIN_DERIVATIVE_GAIN, PF_PID_ANG_PROPORTIONAL_GAIN,

@@ -56,6 +56,10 @@ void ReachTargetTask::abort(){
     follow_task->abort();
 }
 
+const RRTPlanner& ReachTargetTask::get_planner() const{
+    return rrt_planner;
+}
+
 const RRTPlan& ReachTargetTask::get_plan() const{
     return rrt_planner.get_plan();
 }

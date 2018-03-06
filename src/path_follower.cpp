@@ -89,7 +89,7 @@ int PIDPathFollower::_compute_errors( double x, double y, double theta,
     }else{
         //std::cout << "Is unreachable: " << _is_unreachable(path.waypoints[currentWaypoint], x, y, theta) << std::endl;
         if( params.antiLoop && _is_unreachable(path.waypoints[currentWaypoint], x, y, theta) ){
-            std::cout << "Waypoint " << currentWaypoint << " skipped." << std::endl;
+            // std::cout << "Waypoint " << currentWaypoint << " skipped." << std::endl;
             // Current waypoint not reachable, skip it
             if( currentWaypoint == path.waypoints.size() -1 ){
                 // End of the path reached

@@ -21,9 +21,12 @@ bool HeightMap::load_image( std::string filename ){
     return image.data != nullptr;
 }
 
-void HeightMap::load_traversability_graph( std::string filename, int n_rows, int n_columns ){
+void HeightMap::load_traversability_graph( std::string filename, int n_rows, int n_columns,
+                                           double padding_x, double padding_y ){
     t_graph.reset( new TraversabilityGraph( n_rows, n_columns ) );
     t_graph->load_from_dotfile( filename );
+    this->padding_x = padding_x;
+    this->padding_y = padding_y;
 }
 
 void HeightMap::set_dimensions( double x_meters, double z_meters ){
@@ -89,14 +92,20 @@ double HeightMap::traversability_prob( MapOrigin o, double pos_x, double pos_y, 
     if( o == MapOrigin::CENTER_CENTER ){
         assert(-x_meters / 2.0 <= pos_x && pos_x < x_meters / 2.0);
         assert(-y_meters / 2.0 <= pos_y && pos_y < y_meters / 2.0);
-        return t_graph->getLinear((0.5 + pos_x / x_meters) * (double)(t_graph->ncolumns()-1),
-                                  (0.5 - pos_y / y_meters) * (double)(t_graph->nrows()-1),
+        if( pos_x < -x_meters / 2.0 + padding_x || pos_x >= x_meters / 2.0 - padding_x ||
+                pos_y < -y_meters / 2.0 + padding_y || pos_y >= y_meters / 2.0 - padding_y )
+            return 0;
+        return t_graph->getLinear((0.5 + pos_x / (x_meters - 2.0 * padding_x)) * (double)(t_graph->ncolumns()-1),
+                                  (0.5 - pos_y / (y_meters - 2.0 * padding_y)) * (double)(t_graph->nrows()-1),
                                   yaw);
     }else{
         assert( 0 <= pos_x && pos_x < x_meters );
         assert( 0 <= pos_y && pos_y < y_meters );
-        return t_graph->getLinear((pos_x / x_meters) * (double)(t_graph->ncolumns()-1),
-                                  (pos_y / y_meters) * (double)(t_graph->nrows()-1),
+        if( pos_x < padding_x || pos_x >= x_meters - padding_x ||
+                pos_y < padding_y || pos_y >= y_meters - padding_y )
+            return 0;
+        return t_graph->getLinear(((pos_x - padding_x) / (x_meters - 2.0 * padding_x)) * (double)(t_graph->ncolumns()-1),
+                                  ((pos_y - padding_y) / (y_meters - 2.0 * padding_y)) * (double)(t_graph->nrows()-1),
                                   yaw);
     }
 }

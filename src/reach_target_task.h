@@ -25,6 +25,7 @@ public:
     CallResult controlStep( long time_now ) override;
     void abort() override;
 
+    const RRTPlanner& get_planner() const;
     const RRTPlan& get_plan() const;
     const WaypointPath2D& get_path() const;
 

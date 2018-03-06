@@ -15,6 +15,7 @@ struct PlanningProblem{
     double map_x_meters;
     double map_height;
     int tg_size;
+    double tg_padding;
     Point2D start_position;
     double start_yaw;
     Point2D target_position;
@@ -44,6 +45,7 @@ std::vector<PlanningProblem> problems{
                 .map_x_meters = 10.0,
                 .map_height = 0.4,
                 .tg_size = 64,
+                .tg_padding = 0.6,
                 .start_position = Point2D( 0, -4 ),
                 .start_yaw = 0,
                 .target_position = Point2D( -4, 4 ),
@@ -57,6 +59,7 @@ std::vector<PlanningProblem> problems{
                 .map_x_meters = 10.0,
                 .map_height = 1,
                 .tg_size = 64,
+                .tg_padding = 0.3,
                 .start_position = Point2D( 4, -4 ),
                 .start_yaw = M_PI,
                 .target_position = Point2D( 3, 4.5 ),
@@ -70,6 +73,7 @@ std::vector<PlanningProblem> problems{
                 .map_x_meters = 10.0,
                 .map_height = 1,
                 .tg_size = 59,
+                .tg_padding = 0.3,
                 .start_position = Point2D( 0, -1 ),
                 .start_yaw = 0,
                 .target_position = Point2D( 2, 3 ),
@@ -83,6 +87,7 @@ std::vector<PlanningProblem> problems{
                 .map_x_meters = 10.0,
                 .map_height = 0.4,
                 .tg_size = 64,
+                .tg_padding = 0.3,
                 .start_position = Point2D( -4, -4 ),
                 .start_yaw = M_PI_2,
                 .target_position = Point2D( -4, 4 ),
@@ -96,6 +101,7 @@ std::vector<PlanningProblem> problems{
                 .map_x_meters = 30.0,
                 .map_height = 8,
                 .tg_size = 110,
+                .tg_padding = 0.3,
                 .start_position = Point2D( 7, -1 ),
                 .start_yaw = M_PI_2,
                 .target_position = Point2D( -10.5, 9.27 ),
@@ -157,9 +163,13 @@ int main( int argc, char *argv[] ) {
 
     // For each problem
     for( PlanningProblem p: problems ){
+        if( argc > 1 && string(argv[1]) != "--first" && string(argv[1]) != p.name )
+            continue;
+
         std::cout << "Loading test case '" << p.name << "'\n";
         HeightMap map( heightmaps_folder + p.map_filename, p.map_x_meters, p.map_height );
-        map.load_traversability_graph( tgraph_folder + p.tg_filename, p.tg_size, p.tg_size );
+        map.load_traversability_graph( tgraph_folder + p.tg_filename, p.tg_size, p.tg_size,
+                                       p.tg_padding, p.tg_padding );
         // For each solver
         for( PlanningSolver s: solvers ){
             std::cout << "\tSolving with '" << s.name << "'\n";

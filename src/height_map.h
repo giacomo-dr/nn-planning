@@ -22,7 +22,8 @@ public:
     virtual ~HeightMap(){}
 
     bool load_image( std::string filename );
-    void load_traversability_graph( std::string filename, int n_rows, int n_columns );
+    void load_traversability_graph( std::string filename, int n_rows, int n_columns,
+                                    double padding_x, double padding_y );
     void set_dimensions( double x_meters, double z_meters );
     int size_x_px() const;
     int size_y_px() const;
@@ -44,6 +45,8 @@ private:
     double y_meters;
     double z_meters;
     std::unique_ptr<TraversabilityGraph> t_graph;
+    double padding_x;
+    double padding_y;
 
     std::mt19937 rng;
     std::uniform_real_distribution<double> uniform_x;
