@@ -133,8 +133,8 @@ void RRTStarPlanner::expand_to_point( const Point2D& to ){
     // with size computed by neighbors_radius(). Among these nodes, select the one
     // with lower cost.
     double new_branch_cost = std::numeric_limits<double>::max();
-    double new_branch_prob = -1;
-    double new_step_prob = -1;
+    double new_branch_prob = std::numeric_limits<double>::lowest();
+    double new_step_prob = std::numeric_limits<double>::lowest();
     int new_father_idx = -1;
     Point2D new_point;
     for( auto p = nodes_index.qbegin( bgi::nearest(to, params.grow_to_point_neighbors) ); p != nodes_index.qend(); ++p ){
@@ -145,12 +145,28 @@ void RRTStarPlanner::expand_to_point( const Point2D& to ){
             double step_prob = std::log( step_probability( p->first, step ) );
             if( in_bounds( step ) &&  step_prob > traversability_threshold_log ){
                 double branch_cost = rrt.nodes[p->second].cost;
-                if( branch_cost < new_branch_cost ){
-                    new_branch_cost = branch_cost;
-                    new_branch_prob = rrt.nodes[p->second].probability;
-                    new_step_prob = step_prob;
-                    new_father_idx = p->second;
-                    new_point = step;
+                double branch_prob = rrt.nodes[p->second].probability;
+                switch( params.opt_metric ){
+                    case OptMetric::distance:
+                    case OptMetric::tr_threshold_stepping:
+                        if( branch_cost < new_branch_cost ){
+                            new_branch_cost = branch_cost;
+                            new_branch_prob = branch_prob;
+                            new_step_prob = step_prob;
+                            new_father_idx = p->second;
+                            new_point = step;
+                        }
+                        break;
+
+                    case OptMetric::probability:
+                        if( branch_prob + step_prob > new_branch_prob + new_step_prob ){
+                            new_branch_cost = branch_cost;
+                            new_branch_prob = branch_prob;
+                            new_step_prob = step_prob;
+                            new_father_idx = p->second;
+                            new_point = step;
+                        }
+                        break;
                 }
             }
         }
@@ -169,17 +185,33 @@ void RRTStarPlanner::expand_to_point( const Point2D& to ){
         double r = params.growth_factor * 1.1;
         Box neighbors_box( new_point - Point2D(r, r), new_point + Point2D(r, r) );
         for( auto p = nodes_index.qbegin( bgi::within(neighbors_box) ) ; p != nodes_index.qend() ; ++p ){
-            if( abs_angle( new_node, p->first ) < params.max_segment_angle &&
-                    !has_similar_sibling( rrt.nodes[new_idx], p->first ) ){
+            if( abs_angle( new_node, p->first ) < params.max_segment_angle ){
+                // !has_similar_sibling( rrt.nodes[new_idx], p->first ) ){
                 // Test for reparentability (only leaves can be reparented)
-                double step_prob = std::log( step_probability( new_point, p->first ) );
+                double step_prob = std::log( step_probability( new_point, p->first ));
                 double step_cost = (p->first - new_point).norm();
                 double branch_cost = rrt.nodes[p->second].cost;
+                double branch_prob = rrt.nodes[p->second].probability;
                 if( step_prob > traversability_threshold_log && step_cost < params.growth_factor * 1.1 &&
-                        branch_cost > step_cost + rrt.nodes[new_idx].cost && rrt.nodes[p->second].children.empty() ){
-                    rrt.nodes[p->second].parent = (int)new_idx;
-                    rrt.nodes[p->second].probability = step_prob + rrt.nodes[new_idx].probability ;
-                    rrt.nodes[p->second].cost = step_cost + rrt.nodes[new_idx].cost;
+                     rrt.nodes[p->second].children.empty()){
+                    switch( params.opt_metric ){
+                        case OptMetric::distance:
+                        case OptMetric::tr_threshold_stepping:
+                            if( branch_cost > step_cost + rrt.nodes[new_idx].cost ){
+                                rrt.nodes[p->second].parent = (int) new_idx;
+                                rrt.nodes[p->second].probability = step_prob + rrt.nodes[new_idx].probability;
+                                rrt.nodes[p->second].cost = step_cost + rrt.nodes[new_idx].cost;
+                            }
+                            break;
+
+                        case OptMetric::probability:
+                            if( branch_prob < step_prob + rrt.nodes[new_idx].probability ){
+                                rrt.nodes[p->second].parent = (int) new_idx;
+                                rrt.nodes[p->second].probability = step_prob + rrt.nodes[new_idx].probability;
+                                rrt.nodes[p->second].cost = step_cost + rrt.nodes[new_idx].cost;
+                            }
+                            break;
+                    }
                 }
             }
         }

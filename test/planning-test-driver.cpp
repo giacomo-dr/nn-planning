@@ -6,6 +6,26 @@
 #include "rrt_star_planner.h"
 #include "svg_utils.h"
 
+
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+
+
 using std::string;
 
 struct PlanningProblem{
@@ -33,6 +53,8 @@ struct PlanningSolver{
     int grow_to_target_neighbors;
     int grow_to_point_neighbors;
     double neighbors_factor;
+    RRTStarPlanner::OptMetric opt_metric;
+    double threshold_step;
 };
 
 const string heightmaps_folder = "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/";
@@ -112,19 +134,32 @@ std::vector<PlanningProblem> problems{
 };
 
 std::vector<PlanningSolver> solvers{
-        {.name = "RRT",
-                .class_name = "RRTPlanner",
+//        {.name = "RRT",
+//                .class_name = "RRTPlanner",
+//                .greedyness = 10,
+//                .max_iterations = 80000,
+//                .traversability_threshold = 0.9,
+//                .grow_to_point_neighbors = 20,
+//                .opt_metric = RRTStarPlanner::OptMetric::distance,  // Unused
+//                .threshold_step = 0                                 // Unused
+//        },
+        {.name = "RRTStar",
+                .class_name = "RRTStarPlanner",
                 .greedyness = 10,
-                .max_iterations = 80000,
+                .max_iterations = 1200000,
                 .traversability_threshold = 0.9,
-                .grow_to_point_neighbors = 20
+                .grow_to_point_neighbors = 20,
+                .opt_metric = RRTStarPlanner::OptMetric::distance,
+                .threshold_step = 0
         },
         {.name = "RRTStar",
                 .class_name = "RRTStarPlanner",
                 .greedyness = 10,
                 .max_iterations = 1200000,
                 .traversability_threshold = 0.9,
-                .grow_to_point_neighbors = 20
+                .grow_to_point_neighbors = 20,
+                .opt_metric = RRTStarPlanner::OptMetric::probability,
+                .threshold_step = 0
         }
 };
 
@@ -155,6 +190,11 @@ string build_filename( const PlanningProblem &p, const PlanningSolver &s ){
     res << "k_tt" << s.traversability_threshold;
     if( s.grow_to_point_neighbors > -1 )
         res << "_ne" << s.grow_to_point_neighbors;
+    switch( s.opt_metric ){
+        case RRTStarPlanner::OptMetric::distance: res << "_dst"; break;
+        case RRTStarPlanner::OptMetric::probability: res << "_prb"; break;
+        case RRTStarPlanner::OptMetric::tr_threshold_stepping: res << "_stp"; break;
+    }
     res << ".svg";
     return res.str();
 }
@@ -186,7 +226,10 @@ int main( int argc, char *argv[] ) {
                 RRTPlanner planner( &map, params );
                 int res = planner.build_plan( p.start_position, p.start_yaw,
                                               p.target_position, p.target_yaw );
-                std::cout << (res == -1 ? "\t\tTarget not reached" : "\t\tTarget reached") << std::endl;
+                if( res == -1 )
+                    std::cout << RED << "\t\tTarget not reached" << RESET << std::endl;
+                else
+                    std::cout << GREEN << "\t\tTarget reached" << RESET << std::endl;
                 string out_file = build_filename( p, s );
                 std::cout << "\t\tResult saved in " << out_file << std::endl;
                 write_svg_of_map_and_plan( out_file, map, planner );
@@ -197,12 +240,17 @@ int main( int argc, char *argv[] ) {
                         .greediness = s.greedyness,
                         .max_iterations = s.max_iterations,
                         .traversability_threshold = s.traversability_threshold,
-                        .grow_to_point_neighbors = s.grow_to_point_neighbors
+                        .grow_to_point_neighbors = s.grow_to_point_neighbors,
+                        .opt_metric = s.opt_metric,
+                        .threshold_step = s.threshold_step
                 };
                 RRTStarPlanner planner( &map, params );
                 int res = planner.build_plan( p.start_position, p.start_yaw,
                                               p.target_position, p.target_yaw );
-                std::cout << (res == -1 ? "\t\tTarget not reached" : "\t\tTarget reached") << std::endl;
+                if( res == -1 )
+                    std::cout << RED << "\t\tTarget not reached" << RESET << std::endl;
+                else
+                    std::cout << GREEN << "\t\tTarget reached" << RESET << std::endl;
                 string out_file = build_filename( p, s );
                 std::cout << "\t\tResult saved in " << out_file << std::endl;
                 write_svg_of_map_and_plan( out_file, map, planner );
