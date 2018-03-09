@@ -5,10 +5,10 @@
 #ifndef SVG_UTILS_H
 #define SVG_UTILS_H
 
-#import "svg_writer.h"
-#import "rrt_planner.h"
-#import "rrt_star_planner.h"
-#import "height_map.h"
+#include "svg_writer.h"
+#include "rrt_planner.h"
+#include "rrt_star_planner.h"
+#include "height_map.h"
 
 namespace svg { namespace utils {
 

@@ -57,6 +57,23 @@ int main( int argc, char *argv[] ) {
 
         // Execute task
         PathFollowingTask* task = new PathFollowingTask( manta, path );
+        task->setFollowerParameters( PIDPathFollower::Parameters{
+                .linProportionalGain = 2,
+                .linIntegralGain = 1,
+                .linDerivativeGain = 0,
+                .angProportionalGain = 0.8,
+                .angIntegralGain = 0,
+                .angDerivativeGain = 0,
+                .maxLinVel = 8,
+                .maxAngVel = 1.1,
+                .maxLinAcc = 100,
+                .maxAngAcc = 100,
+                .pathBlending = 0.1,
+                .angleTolerance = 0.02,
+                .inPlaceRotationThreshold = 100,
+                .antiLoop = true,
+                .antiLoopRadius = 0.17
+        });
         RobotTaskDriver driver( client, LOOP_DELAY_MS );
         driver.execute( task );
 

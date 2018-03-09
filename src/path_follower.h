@@ -62,7 +62,8 @@ class PIDPathFollower
         .pathBlending = 0,
         .angleTolerance = 0.1,
         .inPlaceRotationThreshold = 100,
-        .antiLoop = false
+        .antiLoop = false,
+        .antiLoopRadius = 0
     };
     WaypointPath2D path;             // Path to follow
     PIDController linPidController;  // PID controller for linear velocity

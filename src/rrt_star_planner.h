@@ -38,9 +38,8 @@ class RRTStarPlanner{
 public:
     enum class OptMetric {              // Kind of Metric used to optimize the path:
         distance,                       //    -  Path length (euclidean)
-        probability,                    //    -  Path combined probability (product of step probabilities)
-        tr_threshold_stepping           //    -  Path length but progressively reduce the
-    } ;                                 //       traversability_threshold by threshold_step
+        probability                     //    -  Path combined probability (product of step probabilities)
+    };
 
     struct Parameters{
         double growth_factor;               // Branch segment size
@@ -50,7 +49,6 @@ public:
         double traversability_threshold;    // Allow a segment only if traversable with a prob greater than this
         int grow_to_point_neighbors;        // Number of neighbors considered when growing to a point
         OptMetric opt_metric;               // Metric used to optimize the path
-        double threshold_step;              // Used when opt_metric == tr_threshold_stepping
     };
 
 public:
@@ -75,8 +73,7 @@ private:
             .max_iterations = 10000,
             .traversability_threshold = 0.95,
             .grow_to_point_neighbors = 10,
-            .opt_metric = OptMetric::distance,
-            .threshold_step = 0
+            .opt_metric = OptMetric::distance
     };
     HeightMap* map;
     RRTStarPlan rrt;

@@ -148,7 +148,6 @@ void RRTStarPlanner::expand_to_point( const Point2D& to ){
                 double branch_prob = rrt.nodes[p->second].probability;
                 switch( params.opt_metric ){
                     case OptMetric::distance:
-                    case OptMetric::tr_threshold_stepping:
                         if( branch_cost < new_branch_cost ){
                             new_branch_cost = branch_cost;
                             new_branch_prob = branch_prob;
@@ -196,7 +195,6 @@ void RRTStarPlanner::expand_to_point( const Point2D& to ){
                      rrt.nodes[p->second].children.empty()){
                     switch( params.opt_metric ){
                         case OptMetric::distance:
-                        case OptMetric::tr_threshold_stepping:
                             if( branch_cost > step_cost + rrt.nodes[new_idx].cost ){
                                 rrt.nodes[p->second].parent = (int) new_idx;
                                 rrt.nodes[p->second].probability = step_prob + rrt.nodes[new_idx].probability;

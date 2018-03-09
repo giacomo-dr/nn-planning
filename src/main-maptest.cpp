@@ -9,7 +9,7 @@
 #include "lodepng.h"
 #include "reach_target_task.h"
 
-#define ELEVATION
+#define CUSTOM
 
 #ifdef CUSTOM
     #define MAP_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/heightmaps/custom9.png"
@@ -17,6 +17,8 @@
     #define MAP_HEIGHT 0.4
     #define TG_FILENAME "/Users/delrig/Downloads/Thesis/traversability_graphs_dataset/graphs/t_graph_cnn_custom9_full.dot"
     #define TG_SIZE 64
+    #define TG_PADDING_X 0.6
+    #define TG_PADDING_Y 0.6
 #endif
 
 #ifdef ROCKS
@@ -47,7 +49,14 @@ void generateThresholdMap( HeightMap& map, double treshold, Point2D step, std::s
     unsigned img_width = 64*10, img_height = 64*10;
     std::vector<unsigned char> image;
     image.resize(img_width * img_height * 4); // 8-bit RGBA
-    RRTPlanner planner( &map, 0.3, 100, 5000, M_PI_4, treshold );
+    RRTPlanner planner( &map, RRTPlanner::Parameters{
+            .growth_factor = 1.0,
+            .max_segment_angle = M_PI_2,
+            .greediness = 10,
+            .max_iterations = 10000,
+            .traversability_threshold = treshold,
+            .grow_to_point_neighbors = 1
+    });
     for( unsigned y = img_height; y > 0 ; y-- )
         for( unsigned x = 0; x < img_width; x++ ){
             double xd = (x / (double)img_width) * map.size_x_mt() - map.size_x_mt() / 2.0;
@@ -57,6 +66,7 @@ void generateThresholdMap( HeightMap& map, double treshold, Point2D step, std::s
 //            std::cout << "xd = " << xd << " yd = " << yd << std::endl;
             unsigned char val = static_cast<unsigned char>(
                     planner.is_traversable(Point2D(xd, yd), Point2D(xd, yd) + step) ? 255 : 0 );
+//            std::cout << "xd = " << xd << " yd = " << yd << " val = " << static_cast<int>(val) << std::endl;
             image[4 * img_width * y + 4 * x + 0] = 0;
             image[4 * img_width * y + 4 * x + 1] = 0;
             image[4 * img_width * y + 4 * x + 2] = val;
@@ -74,7 +84,7 @@ void generateProbabilityMap( TraversabilityGraph& tg, double angle, std::string 
         for( unsigned x = 0 ; x < img_width ; x++ ){
             double xd = (x / 640.0) * (tg.ncolumns() - 1);
             double yd = (y / 640.0) * (tg.nrows() - 1);
-            unsigned char val = static_cast<unsigned char>( tg.getLinear( xd, yd, angle ) * 255 );
+            auto val = static_cast<unsigned char>( tg.getLinear( xd, yd, angle ) * 255 );
             image[4 * img_width * y + 4 * x + 0] = val;
             image[4 * img_width * y + 4 * x + 1] = val;
             image[4 * img_width * y + 4 * x + 2] = val;
@@ -88,14 +98,14 @@ int main() {
     TraversabilityGraph tg( TG_SIZE, TG_SIZE );
     tg.load_from_dotfile( TG_FILENAME );
     HeightMap map( MAP_FILENAME, MAP_X_METERS, MAP_HEIGHT );
-    map.load_traversability_graph( TG_FILENAME, TG_SIZE, TG_SIZE );
+    map.load_traversability_graph( TG_FILENAME, TG_SIZE, TG_SIZE, TG_PADDING_X, TG_PADDING_Y );
 
     generateThresholdMap( map, 0.4, Point2D(0.1, 0.0), "tgraphs/tgraph_tv_right.png" );
     generateThresholdMap( map, 0.4, Point2D(-0.1, 0.0), "tgraphs/tgraph_tv_left.png" );
     generateThresholdMap( map, 0.4, Point2D(0.0, 0.1), "tgraphs/tgraph_tv_up.png" );
     generateThresholdMap( map, 0.4, Point2D(0.0, -0.1), "tgraphs/tgraph_tv_down.png" );
 
-    generateProbabilityMap( tg, M_PI_2, "tgraphs/tgraph_0.png" );
+    generateProbabilityMap( tg, M_PI_2, "tgraphs/prob_map_PI_2.png" );
 
 //    std::cout << tg.get( 1, 1, 0 ) << std::endl;
 //    std::cout << tg.get( 1, 1, 1 ) << std::endl;

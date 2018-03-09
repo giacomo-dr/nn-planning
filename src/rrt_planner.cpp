@@ -204,17 +204,6 @@ double RRTPlanner::abs_angle( const RTreeValue& n, const Point2D& p2 ) const {
 }
 
 bool RRTPlanner::is_traversable( const Point2D& p1, const Point2D& p2 ) const {
-//    std::cout << "    patch from (" << p1.x() << ", " << p1.y() << ") to ("
-//              << p2.x() << ", " << p2.y() << ")\n" ;
-//    Point2D patch_center = (p2 + p1) / 2.0;
-//    std::cout << "    patch_center = (" << patch_center.x() << ", " << patch_center.y() << ")\n";
-//    std::cout << "    patch_angle = " << get_yaw( p2 - p1 ) << "\n";
-//    cv::Mat patch = map->extract_patch( patch_center.x(), patch_center.y(),
-//                                        0.7, growth_factor, get_yaw( p2 - p1 ),
-//                                        MapOrigin::CENTER_CENTER );
-//    double min, max;
-//    cv::minMaxLoc( patch, &min, &max );
-//    return 1.0 - std::fabs(max - min) / 256.0;
     double step_prob = std::log( step_probability( p1, p2 ) );
     return in_bounds( p2 ) && step_prob > traversability_threshold_log;
 }
